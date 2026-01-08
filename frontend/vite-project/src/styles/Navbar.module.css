@@ -1,0 +1,45 @@
+/* Navbar.module.css */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background-color: #0f172a;
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.link {
+  color: #cbd5f5;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.active {
+  background-color: #1e293b;
+  color: white;
+}
+
+.logout {
+  margin-top: auto;
+  background: #ef4444;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+}

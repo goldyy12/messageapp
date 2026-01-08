@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model User {
+  id               Int       @id @default(autoincrement())
+  username         String    @unique
+  email            String?   @unique
+  password         String
+  profilePic       String? // optional
+  status           String? // optional
+  messagesSent     Message[] @relation("sentMessages")
+  messagesReceived Message[] @relation("receivedMessages")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastActive       DateTime? // for online status
+
+  groups        GroupMember[]
+  groupMessages GroupMessage[]
+
+  
+  friends  Friend[] @relation("userFriends")
+  friendOf Friend[] @relation("friendOf")
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  sender      User     @relation("sentMessages", fields: [senderId], references: [id])
+  senderId    Int
+  recipient   User     @relation("receivedMessages", fields: [recipientId], references: [id])
+  recipientId Int
+  text        String?
+  imageUrl    String? 
+  createdAt   DateTime @default(now())
+}
+
+model Friend {
+  id Int @id @default(autoincrement())
+
+  userId   Int
+  friendId Int
+
+  user User @relation("userFriends", fields: [userId], references: [id])
+
+  friend User @relation("friendOf", fields: [friendId], references: [id])
+@@unique([userId, friendId])
+  createdAt DateTime @default(now())
+}
+
+model Group {
+  id        Int            @id @default(autoincrement())
+  name      String
+  members   GroupMember[]
+  messages  GroupMessage[]
+  createdAt DateTime       @default(now())
+}
+
+model GroupMember {
+  id      Int   @id @default(autoincrement())
+  group   Group @relation(fields: [groupId], references: [id])
+  groupId Int
+  user    User  @relation(fields: [userId], references: [id])
+  userId  Int
+}
+
+model GroupMessage {
+  id        Int      @id @default(autoincrement())
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   Int
+  sender    User     @relation(fields: [senderId], references: [id])
+  senderId  Int
+  text      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,67 @@
+/* Page layout */
+.container {
+  display: flex;
+  height: calc(100vh - 60px); /* adjust if you have a navbar */
+  background-color: #f9f9f9;
+  width: 100vh;
+}
+
+/* LEFT SIDEBAR (groups list) */
+.left {
+  width: 260px;
+  background-color: #202123; /* ChatGPT dark sidebar */
+  color: #ffffff;
+  padding: 16px;
+  overflow-y: auto;
+  border-right: 1px solid #2f3035;
+}
+
+.left p {
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.left p:hover {
+  background-color: #2a2b32;
+}
+
+.left p.active {
+  background-color: #343541;
+}
+
+/* RIGHT SIDE (messages area) */
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background-color: #ffffff;
+}
+
+/* Messages container */
+.right p {
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  max-width: 70%;
+  background-color: #ececec;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+/* Sender username */
+.right p strong {
+  display: block;
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+/* Empty state */
+.right .empty {
+  margin: auto;
+  color: #888;
+  font-size: 14px;
+}
