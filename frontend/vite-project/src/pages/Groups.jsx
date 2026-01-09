@@ -12,6 +12,7 @@ export default function Groups() {
   const [messageText, setMessageText] = useState("");
   const [friends, setFriends] = useState([]);
   const [friendsMenu, setFriendsMenu] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
 
   const getGroups = async () => {
     try {
@@ -22,6 +23,17 @@ export default function Groups() {
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  };
+  const addGroup = async () => {
+    try {
+      if (!newGroupName.trim()) return;
+      const res = await api.post("/groups", { name: newGroupName });
+      console.log("Group created:", res.data);
+      setNewGroupName("");
+      getGroups();
+    } catch (error) {
+      console.log(error);
     }
   };
   const getFriends = async () => {
@@ -96,6 +108,14 @@ export default function Groups() {
 
       <div className="container">
         <div className="left">
+          <div className="add-group">
+            <input
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              placeholder="New group name"
+            />
+            <button onClick={addGroup}>Add Group</button>
+          </div>
           {groups.length === 0 ? (
             <p>No groups found</p>
           ) : (

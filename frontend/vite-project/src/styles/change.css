@@ -1,0 +1,27 @@
+.change-password-container {
+  max-width: 400px;
+  margin: 50px auto;
+}
+
+.change-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.change-password-form input {
+  padding: 8px;
+}
+
+.change-password-form button {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+}
+
+.success {
+  color: green;
+}

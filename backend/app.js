@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import friendsRoutes from "./routes/friend.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import groupRoutes from "./routes/group.routes.js";
+import accountRoutes from "./routes/account.routes.js"
 
 dotenv.config();
 
@@ -23,5 +24,6 @@ app.use(express.json());
 app.use("/api/friends", friendsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/groups", groupRoutes);
+app.use("/api/account/",accountRoutes)
 
 export default app;

@@ -69,6 +69,14 @@ export const addFriend = async (req, res) => {
   const userId = getUserId(req);
   const { friendId } = req.body;
 
+  if (!friendId) {
+    return res.status(400).json({ error: "friendId is required" });
+  }
+
+  if (userId === friendId) {
+    return res.status(400).json({ error: "You cannot add yourself" });
+  }
+
   try {
     const existing = await prisma.friend.findFirst({
       where: {
@@ -91,9 +99,12 @@ export const addFriend = async (req, res) => {
       skipDuplicates: true,
     });
 
-    res.status(201).json(newFriends);
+    return res.status(201).json({
+      message: "Friend added successfully",
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -111,22 +122,25 @@ export const getFriendsOnline = async (req, res) => {
     if (friendIds.length === 0) {
       return res.json([]);
     }
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const fiveMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
+    
     const onlineFriends = await prisma.user.findMany({
       where: {
         id: { in: friendIds },
-        lastSeen: { gte: fiveMinutesAgo },
+        lastActive: { gte: fiveMinutesAgo ,  not:null},
+        
       },
       select: {
         id: true,
         username: true,
-        lastSeen: true,
+        lastActive: true,
       },
     });
 
     res.json(onlineFriends);
   } catch (error) {
     res.status(500).json({ error: error.message });
+    console.error("getFriendsOnline error:", error)
   }
 };
 

@@ -41,6 +41,10 @@ export const register = async (req, res) => {
         password: hashedPassword,
       },
     });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActive: new Date() },
+    });
 
     const token = jwt.sign(
       { userId: user.id, username: user.username },
