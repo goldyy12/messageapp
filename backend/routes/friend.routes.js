@@ -5,6 +5,7 @@ import {
   addFriend,
   getFriendsOnline,
   searchFriends,
+  getFriendByID
 } from "../controllers/friendController.js";
 import { authenticateToken } from "../middleware/auth.js";
 
@@ -16,6 +17,7 @@ router.get("/", getFriends);
 router.get("/available", getAvailableFriends);
 
 router.post("/", addFriend);
+router.get("/:id",getFriendByID)
 
 router.get("/online", getFriendsOnline);
 

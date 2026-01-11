@@ -111,6 +111,11 @@ export const addFriend = async (req, res) => {
 export const getFriendsOnline = async (req, res) => {
   const userId = getUserId(req);
 
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+console.log("Headers:", req.headers);
+console.log("UserId:", getUserId(req));
   try {
     const userFriends = await prisma.friend.findMany({
       where: { userId },
@@ -122,13 +127,16 @@ export const getFriendsOnline = async (req, res) => {
     if (friendIds.length === 0) {
       return res.json([]);
     }
-    const fiveMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
-    
+
+   
+    const oneHourAgo = new Date(Date.now() - 5 * 60 * 60 * 1000);
+
     const onlineFriends = await prisma.user.findMany({
       where: {
         id: { in: friendIds },
-        lastActive: { gte: fiveMinutesAgo ,  not:null},
-        
+        lastActive: {
+          gte: oneHourAgo,
+        },
       },
       select: {
         id: true,
@@ -139,8 +147,51 @@ export const getFriendsOnline = async (req, res) => {
 
     res.json(onlineFriends);
   } catch (error) {
+    console.error("getFriendsOnline error:", error);
     res.status(500).json({ error: error.message });
-    console.error("getFriendsOnline error:", error)
+  }
+};
+
+export const getFriendByID = async (req, res) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+
+  const friendId = Number(id);
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!id || Number.isNaN(friendId)) {
+    return res.status(400).json({ error: "Invalid friend ID" });
+  }
+
+  try {
+    const friend = await prisma.friend.findUnique({
+      where: {
+        userId_friendId: {
+          userId,
+          friendId,
+        },
+      },
+      include: {
+        friend: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!friend) {
+      return res.status(404).json({ error: "Friend not found" });
+    }
+
+    res.json(friend.friend);
+  } catch (error) {
+    console.error("getFriendByID error:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 

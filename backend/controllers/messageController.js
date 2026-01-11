@@ -17,18 +17,22 @@ export const sendMessage = async (req, res) => {
     const message = await prisma.message.create({
       data: {
         senderId,
-        recipientId,
+        recipientId: receiverId, // ✅ FIXED
         text,
       },
     });
+
     res.status(201).json(message);
   } catch (error) {
+    console.error("SEND MESSAGE ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 };
+
 export const getMessages = async (req, res) => {
   const userId = getUserId(req);
-  const { friendId } = req.params;
+    const friendId = Number(req.params.friendId);
+
 
   try {
     if (!userId) {

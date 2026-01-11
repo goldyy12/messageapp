@@ -11,7 +11,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model User {
   id               Int       @id @default(autoincrement())
   username         String    @unique
@@ -28,7 +27,6 @@ model User {
   groups        GroupMember[]
   groupMessages GroupMessage[]
 
-  
   friends  Friend[] @relation("userFriends")
   friendOf Friend[] @relation("friendOf")
 }
@@ -40,7 +38,7 @@ model Message {
   recipient   User     @relation("receivedMessages", fields: [recipientId], references: [id])
   recipientId Int
   text        String?
-  imageUrl    String? 
+  imageUrl    String?
   createdAt   DateTime @default(now())
 }
 
@@ -52,9 +50,10 @@ model Friend {
 
   user User @relation("userFriends", fields: [userId], references: [id])
 
-  friend User @relation("friendOf", fields: [friendId], references: [id])
-@@unique([userId, friendId])
+  friend    User     @relation("friendOf", fields: [friendId], references: [id])
   createdAt DateTime @default(now())
+
+  @@unique([userId, friendId])
 }
 
 model Group {
