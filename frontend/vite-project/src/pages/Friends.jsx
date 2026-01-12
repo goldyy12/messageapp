@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api";
+import "../styles/friends.css"; // create this CSS file
 
 export default function Friends() {
   const [friends, setFriends] = useState([]);
@@ -29,7 +30,6 @@ export default function Friends() {
       try {
         const res = await api.get("/friends/online");
         setOnline(res.data);
-        console.log(res.data)
       } catch (error) {
         console.log(error);
       }
@@ -55,38 +55,48 @@ export default function Friends() {
   };
 
   return (
-    <div>
-      <h2>My Friends</h2>
-      <ul>
+    <div className="friends-container">
+      <div className="friends-column">
+        <h2>My Friends</h2>
         {friends.length === 0 ? (
           <p>You have no friends, add one</p>
         ) : (
-          friends.map((friend) => (
-            <li key={friend.id}>{friend.username}</li>
-          ))
+          <ul>
+            {friends.map((friend) => (
+              <li key={friend.id}>{friend.username}</li>
+            ))}
+          </ul>
         )}
-      </ul>
+      </div>
 
-      <h2>Available Friends</h2>
-      <ul>
+      <div className="friends-column">
+        <h2>Available Friends</h2>
         {available.length === 0 ? (
           <p>No available friends</p>
         ) : (
-          available.map((user) => (
-            <li key={user.id}>
-              {user.username}
-              <button onClick={() => addFriend(user.id)}>Add</button>
-            </li>
-          ))
+          <ul>
+            {available.map((user) => (
+              <li key={user.id}>
+                {user.username}
+                <button onClick={() => addFriend(user.id)}>Add</button>
+              </li>
+            ))}
+          </ul>
         )}
-      </ul>
+      </div>
 
-      <h2>Online Friends</h2>
-      <ul>
-        {online.map((user) => (
-          <li key={user.id}>{user.username}</li>
-        ))}
-      </ul>
+      <div className="friends-column">
+        <h2>Online Friends</h2>
+        {online.length === 0 ? (
+          <p>No one is online</p>
+        ) : (
+          <ul>
+            {online.map((user) => (
+              <li key={user.id}>{user.username}</li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

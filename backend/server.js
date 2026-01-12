@@ -1,4 +1,3 @@
-// server.js
 import http from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
@@ -12,23 +11,30 @@ const io = new Server(server, {
   },
 });
 
+// 🔥 STORE ONLINE USERS
+const onlineUsers = new Map();
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("joinGroup", (groupId) => {
-    socket.join(`group_${groupId}`);
-    console.log(`Socket ${socket.id} joined group_${groupId}`);
+  // ✅ JOIN USER (PRIVATE CHAT)
+  socket.on("joinUser", (userId) => {
+    onlineUsers.set(userId, socket.id);
+    console.log(`User ${userId} connected with socket ${socket.id}`);
   });
 
   socket.on("disconnect", () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
     console.log("User disconnected:", socket.id);
   });
 });
 
-export { io };
+export { io, onlineUsers };
 
 const PORT = process.env.PORT || 8080;
-
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));

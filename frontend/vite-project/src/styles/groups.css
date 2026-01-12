@@ -1,67 +1,161 @@
-/* Page layout */
-.container {
+.groups-container {
   display: flex;
-  height: calc(100vh - 60px); /* adjust if you have a navbar */
-  background-color: #f9f9f9;
-  width: 100vh;
-}
-
-/* LEFT SIDEBAR (groups list) */
-.left {
-  width: 260px;
-  background-color: #202123; /* ChatGPT dark sidebar */
-  color: #ffffff;
-  padding: 16px;
-  overflow-y: auto;
-  border-right: 1px solid #2f3035;
-}
-
-.left p {
-  padding: 10px 12px;
-  margin-bottom: 6px;
+  flex-direction: row;
+  max-width: 1800px;
+  min-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  height: 80vh;
+  border: 1px solid #ccc;
   border-radius: 8px;
+  overflow: hidden;
+  margin-left: 100px;
+}
+
+/* Left sidebar: groups list + add group */
+.groups-left {
+  width: 300px;
+  border-right: 1px solid #ccc;
+  overflow-y: auto;
+  background-color: #f4f4f4;
+  padding: 10px;
+  color: black
+  ;
+}
+
+.add-group {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.add-group input {
+  flex: 1;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-right: 5px;
+}
+
+.add-group button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #128C7E;
+  color: white;
   cursor: pointer;
-  transition: background 0.2s ease;
 }
 
-.left p:hover {
-  background-color: #2a2b32;
+.add-group button:hover {
+  background-color: #075E54;
 }
 
-.left p.active {
-  background-color: #343541;
+.groups-list p,
+.group-item {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
 }
 
-/* RIGHT SIDE (messages area) */
-.right {
+.groups-list p:hover,
+.group-item:hover {
+  background-color: #e0e0e0;
+}
+
+/* Right chat area */
+.groups-right {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  background-color: #ffffff;
+  padding: 10px;
 }
 
-/* Messages container */
-.right p {
-  margin-bottom: 10px;
-  padding: 10px 14px;
-  max-width: 70%;
-  background-color: #ececec;
-  border-radius: 10px;
-  font-size: 14px;
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* Sender username */
-.right p strong {
-  display: block;
-  font-size: 12px;
-  color: #555;
-  margin-bottom: 2px;
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-/* Empty state */
-.right .empty {
-  margin: auto;
+.my-message-wrapper {
+  align-items: flex-end;
+}
+
+.message {
+  padding: 8px 12px;
+  border-radius: 12px;
+  max-width: 60%;
+  margin: 2px 0;
+}
+
+.my-message {
+  background-color: #136fd8;
+  align-self: flex-end;
+}
+
+.other-message {
+  background-color: #E5E5EA;
+  align-self: flex-start;
+}
+
+.message-time {
+  font-size: 10px;
   color: #888;
-  font-size: 14px;
+  margin-top: 2px;
+}
+
+.input-container {
+  display: flex;
+  margin-top: 10px;
+}
+
+.message-input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  margin-right: 8px;
+}
+
+.send-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  background-color: #128C7E;
+  color: white;
+  cursor: pointer;
+}
+
+.send-button:hover {
+  background-color: #075E54;
+}
+
+.friend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  border-bottom: 1px solid #ddd;
+}
+
+.friend-item button {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  background-color: #128C7E;
+  color: white;
+  cursor: pointer;
+}
+
+.friend-item button:hover {
+  background-color: #075E54;
 }

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import api from "../api";
 import "../styles/groups.css";
 import socket from "../socket";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Groups() {
   const [groups, setGroups] = useState([]);
@@ -13,6 +14,7 @@ export default function Groups() {
   const [friends, setFriends] = useState([]);
   const [friendsMenu, setFriendsMenu] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+  const { user } = useContext(AuthContext);
 
   const getGroups = async () => {
     try {
@@ -25,42 +27,69 @@ export default function Groups() {
       setIsLoading(false);
     }
   };
+
   const addGroup = async () => {
+    if (!newGroupName.trim()) return;
     try {
-      if (!newGroupName.trim()) return;
-      const res = await api.post("/groups", { name: newGroupName });
-      console.log("Group created:", res.data);
+      await api.post("/groups", { name: newGroupName });
       setNewGroupName("");
       getGroups();
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.error(err);
     }
   };
+
   const getFriends = async () => {
     try {
       const res = await api.get("/friends");
       setFriends(res.data);
-      console.log(friends);
-    } catch (error) {
-      console.error("Failed to load friends", error);
+    } catch (err) {
+      console.error(err);
     }
   };
+
   const sendMessage = async (e) => {
     e.preventDefault();
+    if (!messageText.trim() || !selectedGroup) return;
 
-    if (!messageText.trim()) return;
+    try {
+      const res = await api.post("/groups/message", {
+        groupId: selectedGroup.id,
+        text: messageText,
+      });
+      setGroupMessages((prev) => [...prev, res.data]);
+      setMessageText("");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    await api.post("/groups/message", {
-      groupId: selectedGroup.id,
-      text: messageText,
-    });
+  const handleGroupClick = async (id) => {
+    try {
+      const res = await api.get(`/groups/${id}`);
+      setSelectedGroup(res.data);
+      setGroupMessages(res.data.messages);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    setMessageText("");
+  const addMember = async (memberId) => {
+    try {
+      const res = await api.post("/groups/addmember", {
+        groupId: selectedGroup.id,
+        memberID: memberId,
+      });
+      alert(`${res.data.userId} added to group!`);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
     getGroups();
   }, []);
+
   useEffect(() => {
     if (!selectedGroup) return;
 
@@ -75,108 +104,102 @@ export default function Groups() {
     };
   }, [selectedGroup]);
 
-  const handleGroupClick = async (id) => {
-    try {
-      const res = await api.get(`/groups/${id}`);
-      setSelectedGroup(res.data);
-      setGroupMessages(res.data.messages);
-      console.log(selectedGroup);
-    } catch (err) {
-      console.error("Failed to load group", err);
-    }
-  };
-  const addMember = async (memberId) => {
-    try {
-      const res = await api.post("/groups/addmember", {
-        groupId: selectedGroup.id,
-        memberID: memberId,
-      });
-      alert(`${res.data.userId} added to group!`);
-
-      console.log("Member added:", res.data);
-    } catch (error) {
-      console.error("Failed to add member", error.response?.data || error);
-    }
-  };
-
   if (isLoading) return <p>Loading groups...</p>;
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
-      <h3>Groups</h3>
-
-      <div className="container">
-        <div className="left">
-          <div className="add-group">
-            <input
-              value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-              placeholder="New group name"
-            />
-            <button onClick={addGroup}>Add Group</button>
-          </div>
-          {groups.length === 0 ? (
-            <p>No groups found</p>
-          ) : (
-            groups.map((group) => (
-              <p
-                key={group.id}
-                onClick={() => handleGroupClick(group.id)}
-                style={{ cursor: "pointer" }}
-              >
-                {group.name}
-              </p>
-            ))
-          )}
+    <div className="groups-container">
+      {/* Left side: groups list */}
+      <div className="groups-left">
+        <div className="add-group">
+          <input
+            value={newGroupName}
+            onChange={(e) => setNewGroupName(e.target.value)}
+            placeholder="New group name"
+          />
+          <button onClick={addGroup}>Add Group</button>
         </div>
 
-        <div className="right">
-          {!selectedGroup ? (
-            <p>Select a group</p>
-          ) : (
-            <>
-              <div className="messages">
-                {groupMessages.length === 0 ? (
-                  <p>No messages yet, write one</p>
-                ) : (
-                  groupMessages.map((message) => (
-                    <p key={message.id}>
-                      <strong>{message.sender.username}:</strong> {message.text}
+        <div className="groups-list">
+          {groups.map((group) => (
+            <p
+              key={group.id}
+              className="group-item"
+              onClick={() => handleGroupClick(group.id)}
+            >
+              {group.name}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      {/* Right side: chat area */}
+      <div className="groups-right">
+        {!selectedGroup ? (
+          <p>Select a group</p>
+        ) : (
+          <>
+            <div className="messages-container">
+              {groupMessages.map((msg) => {
+                const time = new Date(msg.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+
+                const isMyMessage = msg.senderId === user.userId;
+
+                return (
+                  <div
+                    key={msg.id}
+                    className={`message-wrapper ${
+                      isMyMessage
+                        ? "my-message-wrapper"
+                        : "other-message-wrapper"
+                    }`}
+                  >
+                    <p
+                      className={`message ${
+                        isMyMessage ? "my-message" : "other-message"
+                      }`}
+                    >
+                      <strong>{msg.sender.username}:</strong> {msg.text}
                     </p>
-                  ))
-                )}
-              </div>
-
-              <form onSubmit={sendMessage} className="message-form">
-                <input
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Type a message..."
-                />
-                <button type="submit">Send</button>
-              </form>
-              <button
-                onClick={() => {
-                  setFriendsMenu((prev) => !prev);
-                  getFriends();
-                }}
-              >
-                Get Friends
-              </button>
-
-              {friendsMenu &&
-                friends.map((friend) => (
-                  <div key={friend.id} className="friend-item">
-                    <p>{friend.username}</p>
-                    <button onClick={() => addMember(friend.id)}>
-                      Add member
-                    </button>
+                    <span className="message-time">{time}</span>
                   </div>
-                ))}
-            </>
-          )}
-        </div>
+                );
+              })}
+            </div>
+
+            <form onSubmit={sendMessage} className="input-container">
+              <input
+                className="message-input"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Type a message..."
+              />
+              <button className="send-button" type="submit">
+                Send
+              </button>
+            </form>
+
+            <button
+              onClick={() => {
+                setFriendsMenu((prev) => !prev);
+                getFriends();
+              }}
+            >
+              Get Friends
+            </button>
+
+            {friendsMenu &&
+              friends.map((friend) => (
+                <div key={friend.id} className="friend-item">
+                  <p>{friend.username}</p>
+                  <button onClick={() => addMember(friend.id)}>Add member</button>
+                </div>
+              ))}
+          </>
+        )}
       </div>
     </div>
   );

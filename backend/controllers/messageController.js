@@ -1,5 +1,7 @@
 import prisma from "../db.js";
 import { getUserId } from "../utils/getUserId.js";
+import { io, onlineUsers } from "../server.js";
+
 
 export const sendMessage = async (req, res) => {
   const senderId = getUserId(req);
@@ -17,10 +19,20 @@ export const sendMessage = async (req, res) => {
     const message = await prisma.message.create({
       data: {
         senderId,
-        recipientId: receiverId, // ✅ FIXED
+        recipientId: receiverId, 
         text,
       },
     });
+const receiverSocketId = onlineUsers.get(receiverId);
+if (receiverSocketId) {
+  io.to(receiverSocketId).emit("privateMessage", message);
+}
+
+                                            
+const senderSocketId = onlineUsers.get(senderId);
+if (senderSocketId) {
+  io.to(senderSocketId).emit("privateMessage", message);
+}
 
     res.status(201).json(message);
   } catch (error) {
