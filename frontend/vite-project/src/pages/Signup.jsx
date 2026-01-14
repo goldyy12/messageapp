@@ -39,7 +39,7 @@ export default function Register() {
     <div className={styles.loginContainer}>
       <div className={styles.card}>
         <h1 className={styles.title}>Create Account</h1>
-        <p style={{ color: '#666', marginBottom: '1.5rem' }}>Join our community today</p>
+        <p style={{ color: 'white', marginBottom: '1.5rem' }}>Join our community today</p>
 
         <form onSubmit={handleRegister}>
           <div className={styles.inputGroup}>

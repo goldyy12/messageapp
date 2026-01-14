@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/protectedRoutes";
 
@@ -8,14 +8,19 @@ import Conversations from "./pages/Conversations";
 import Friends from "./pages/Friends";
 import Account from "./pages/Account";
 import Signup from "./pages/Signup";
+
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-      <Route element={<Layout />}>
-        
+      
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
+      
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
+      \
+      <Route element={<Layout />}>
         <Route
           path="/groups"
           element={
@@ -49,6 +54,9 @@ function App() {
           }
         />
       </Route>
+
+     
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
