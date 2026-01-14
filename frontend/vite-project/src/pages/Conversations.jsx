@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import api from "../api";
 import "../styles/conversations.css";
-import { AuthContext } from "../context/authContext.jsx";
+import { AuthContext } from "../context/AuthContext.jsx";
 import socket from "../socket";
 
 export default function Conversations() {

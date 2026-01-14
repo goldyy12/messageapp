@@ -2,7 +2,7 @@ import { useState, useEffect, useContext ,useRef} from "react";
 import api from "../api";
 import "../styles/groups.css";
 import socket from "../socket";
-import { AuthContext } from "../context/authContext.jsx";
+import { AuthContext } from "../context/AuthContext.jsx";
 
 export default function Groups() {
   const [groups, setGroups] = useState([]);

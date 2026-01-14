@@ -2,7 +2,7 @@ import { useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { NavLink, Link } from "react-router-dom"; // ✅ works with new versions
 
-import { AuthContext } from "./authContext.jsx";
+import { AuthContext } from "./AuthContext.jsx";
 
 function getUserFromToken() {
   const token = localStorage.getItem("token");
