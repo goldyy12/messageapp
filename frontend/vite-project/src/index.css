@@ -70,11 +70,10 @@ body,
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100vh; /* Changed height to min-height to prevent cutting off */
+  height: 100%;
   background-image: url("/photo2.jpg");
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* Highly recommended for full-page bgs */
 }
 *,
 *::before,
