@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+ 
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -54,7 +54,7 @@ button:focus-visible {
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+    
   }
   a:hover {
     color: #747bff;
@@ -70,10 +70,11 @@ body,
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  background-image: url(photo2.jpg);
+  min-height: 100vh; /* Changed height to min-height to prevent cutting off */
+  background-image: url("/photo2.jpg");
   background-size: cover;
   background-position: center;
+  background-attachment: fixed; /* Highly recommended for full-page bgs */
 }
 *,
 *::before,
@@ -82,4 +83,8 @@ body,
 }
 
 
-
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
