@@ -26,6 +26,16 @@ app.use("/api/friends", friendsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/account/",accountRoutes)
-app.use("/api/messages/",messageRouter)
+app.use("/api/messages/",messageRouter);
+
+app.get("/health", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: "ok", db: "connected" });
+  } catch (e) {
+    res.status(500).json({ status: "error", db: "failed" });
+  }
+});
+
 
 export default app;
