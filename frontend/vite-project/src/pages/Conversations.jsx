@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import api from "../api";
 import "../styles/conversations.css";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/authContext.jsx";
 import socket from "../socket";
 
 export default function Conversations() {
@@ -55,7 +55,7 @@ export default function Conversations() {
     getFriends();
   }, []);
 
-  // Handle friend click
+ 
   const handleClick = async (id) => {
     try {
       const res = await api.get(`/friends/${id}`);
