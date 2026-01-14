@@ -20,7 +20,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/regiter", {
+      const res = await api.post("/auth/register", {
         username,
         password,
       });
