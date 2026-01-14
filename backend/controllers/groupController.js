@@ -109,7 +109,7 @@ export const addToGroup = async (req, res) => {
       return res.status(400).json({ error: "User already in group" });
     }
 
-    // 3️⃣ Add member
+    
     const member = await prisma.groupMember.create({
       data: {
         groupId: Number(groupId),
@@ -123,3 +123,48 @@ export const addToGroup = async (req, res) => {
     res.status(500).json({ error: "Failed to add member" });
   }
 };
+
+export const getAvailableFriends = async (req, res) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+
+  try {
+    // Get current group members
+    const groupMembers = await prisma.groupMember.findMany({
+      where: { groupId: Number(id) },
+      select: { userId: true },
+    });
+
+    // Get friends NOT in the group
+    const availableFriendsRaw = await prisma.friend.findMany({
+      where: {
+        userId,
+        friendId: { notIn: groupMembers.map(member => member.userId) },
+      },
+      include: { friend: { select: { id: true, username: true } } },
+    });
+
+    // Map to simple structure
+    const availableFriends = availableFriendsRaw.map(f => ({
+      id: f.friend.id,
+      username: f.friend.username
+    }));
+
+    res.json(availableFriends);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const leaveGroup = async (req, res) => {
+  const userId = getUserId(req);
+  const { groupId } = req.body;
+  try {
+    await prisma.groupMember.deleteMany({
+      where: { groupId: Number(groupId), userId },
+    });
+    res.json({ message: "Left group successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

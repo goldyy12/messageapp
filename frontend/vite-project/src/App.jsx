@@ -11,9 +11,10 @@ import Signup from "./pages/Signup";
 function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
-        <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+      <Route element={<Layout />}>
+        
 
         <Route
           path="/groups"

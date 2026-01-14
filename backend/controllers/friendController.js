@@ -114,8 +114,7 @@ export const getFriendsOnline = async (req, res) => {
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-console.log("Headers:", req.headers);
-console.log("UserId:", getUserId(req));
+
   try {
     const userFriends = await prisma.friend.findMany({
       where: { userId },
@@ -131,19 +130,21 @@ console.log("UserId:", getUserId(req));
    
     const oneHourAgo = new Date(Date.now() - 5 * 60 * 60 * 1000);
 
-    const onlineFriends = await prisma.user.findMany({
-      where: {
-        id: { in: friendIds },
-        lastActive: {
-          gte: oneHourAgo,
-        },
-      },
-      select: {
-        id: true,
-        username: true,
-        lastActive: true,
-      },
-    });
+   const onlineFriends = await prisma.user.findMany({
+  where: {
+    id: { in: friendIds },
+    lastActive: {
+      not: null,
+      gte: oneHourAgo,
+    },
+  },
+  select: {
+    id: true,
+    username: true,
+    lastActive: true,
+  },
+});
+
 
     res.json(onlineFriends);
   } catch (error) {

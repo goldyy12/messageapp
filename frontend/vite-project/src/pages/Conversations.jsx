@@ -17,7 +17,7 @@ export default function Conversations() {
 
   const { user } = useContext(AuthContext);
 
-  // Join user for socket messages
+  
   useEffect(() => {
     if (!user?.userId) return;
     socket.emit("joinUser", user.userId);
@@ -27,7 +27,7 @@ export default function Conversations() {
     };
   }, [user]);
 
-  // Listen for incoming messages
+ 
   useEffect(() => {
     socket.on("privateMessage", (message) => {
       if (
@@ -42,7 +42,7 @@ export default function Conversations() {
     return () => socket.off("privateMessage");
   }, [friendClicked]);
 
-  // Load friends
+  
   useEffect(() => {
     const getFriends = async () => {
       try {
@@ -66,7 +66,6 @@ export default function Conversations() {
     }
   };
 
-  // Load messages
   const getMessages = async (id) => {
     try {
       const res = await api.get(`/messages/${id}`);
@@ -77,7 +76,7 @@ export default function Conversations() {
     }
   };
 
-  // Send message
+ 
   const sendMessage = async () => {
     if (!sentMessage || !friendClicked) return;
 
@@ -87,7 +86,7 @@ export default function Conversations() {
         receiverId: friendClicked.id,
       });
 
-      // Add new message to the end
+    
       setAllMessages((prev) => [...prev, res.data]);
       setSentMessage("");
     } catch (error) {
@@ -95,14 +94,14 @@ export default function Conversations() {
     }
   };
 
-  // Scroll to bottom whenever messages change
+  
   useEffect(() => {
     scrollToBottom();
   }, [allMessages]);
 
   return (
     <div className="conversations-container">
-      {/* Friends List */}
+      
       <div className="friends-list">
         <h2>My friends</h2>
         {friends.map((friend) => (
@@ -116,7 +115,7 @@ export default function Conversations() {
         ))}
       </div>
 
-      {/* Chat Area */}
+     
       <div className="chat-area">
         {friendClicked ? (
           <>
@@ -151,7 +150,6 @@ export default function Conversations() {
                 );
               })}
 
-              {/* Scroll target */}
               <div ref={messagesEndRef} />
             </div>
 
@@ -168,7 +166,18 @@ export default function Conversations() {
             </div>
           </>
         ) : (
-          <p>Select a friend to start chatting</p>
+          <div className="empty-state">
+            <div className="icon-circle">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <h2>Select a Friend</h2>
+            <p>Select a friend to join the conversation.</p>
+          </div>
         )}
       </div>
     </div>

@@ -16,11 +16,12 @@ router.get("/", getFriends);
 
 router.get("/available", getAvailableFriends);
 
-router.post("/", addFriend);
-router.get("/:id",getFriendByID)
-
 router.get("/online", getFriendsOnline);
 
 router.get("/search", searchFriends);
+
+router.post("/", addFriend);
+router.get("/:id",getFriendByID)
+
 
 export default router;

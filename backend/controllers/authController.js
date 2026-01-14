@@ -41,15 +41,12 @@ export const register = async (req, res) => {
         password: hashedPassword,
       },
     });
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastActive: new Date() },
-    });
+   
 
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
 
     res.status(201).json({
@@ -76,6 +73,10 @@ export const login = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { username },
     });
+     await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActive: new Date() },
+    });
 
     if (!user) {
       return res.status(400).json({ error: "Invalid credentials" });
@@ -89,7 +90,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
 
     res.json({ token });

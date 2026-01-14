@@ -8,20 +8,21 @@
 }
 
 .friends-column {
-  flex: 1; /* each column takes equal space */
+  flex: 1; 
   background-color: #f4f4f4;
   padding: 15px;
   border-radius: 8px;
+  background-color: #23354b;
   border: 1px solid #ccc;
   height: 400px;
   overflow-y: auto;
-  color: black;
+  color: white;
 }
 
 .friends-column h2 {
   text-align: center;
   margin-bottom: 10px;
-  color: #333;
+  color: white;
 }
 
 .friends-column ul {
@@ -32,12 +33,13 @@
 .friends-column li {
   padding: 8px 10px;
   margin-bottom: 6px;
-  background-color: #fff;
+  background-color: #395475;
   border-radius: 8px;
   border: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: white;
 }
 
 .friends-column li button {

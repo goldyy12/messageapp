@@ -1,6 +1,6 @@
 import { NavLink, Link } from "react-router-dom";
 import { useContext } from "react";
-import { AuthContext } from "../context/authContext";
+import { AuthContext } from "../context/authcontext";
 import styles from "../styles/Navbar.module.css";
 
 export default function Navbar() {
@@ -22,15 +22,30 @@ export default function Navbar() {
           Groups
         </NavLink>
 
-        <NavLink to="/conversations" className={styles.link}>
+        <NavLink
+          to="/conversations"
+          className={({ isActive }) =>
+            isActive ? `${styles.link} ${styles.active}` : styles.link
+          }
+        >
           Conversations
         </NavLink>
 
-        <NavLink to="/friends" className={styles.link}>
+        <NavLink
+          to="/friends"
+          className={({ isActive }) =>
+            isActive ? `${styles.link} ${styles.active}` : styles.link
+          }
+        >
           Friends
         </NavLink>
 
-        <NavLink to="/account" className={styles.link}>
+        <NavLink
+          to="/account"
+          className={({ isActive }) =>
+            isActive ? `${styles.link} ${styles.active}` : styles.link
+          }
+        >
           Account Management
         </NavLink>
 
