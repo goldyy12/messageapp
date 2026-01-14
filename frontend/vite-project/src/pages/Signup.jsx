@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/authContext";
 import api from "../api";
 import styles from "../styles/Login.module.css"; // ✅ Shares the same styling
 
@@ -20,7 +20,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/register", {
+      const res = await api.post("/auth/regiter", {
         username,
         password,
       });
