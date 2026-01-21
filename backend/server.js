@@ -4,12 +4,25 @@ import app from "./app.js";
 
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  "http://localhost:5173",                         // local dev
+  "https://messageapp-ccvm.vercel.app",           // frontend 1
+  "https://messageapp-umber.vercel.app"           // frontend 2
+];
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173", 
+    origin: function(origin, callback) {
+      // allow requests with no origin (like Postman) or in allowedOrigins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy: origin ${origin} not allowed`));
+      }
+    },
     methods: ["GET", "POST"],
-    credentials: true,
-  },
+    credentials: true
+  }
 });
 
 const onlineUsers = new Map();
