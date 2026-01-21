@@ -30,7 +30,7 @@ app.use("/api/messages/",messageRouter);
 
 app.get("/health", async (req, res) => {
   try {
-    // This confirms the app can actually talk to the DB
+    
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: "ok", db: "connected" });
   } catch (e) {
