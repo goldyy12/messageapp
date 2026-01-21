@@ -13,12 +13,26 @@ dotenv.config();
 
 const app = express();
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  })
-);
+import cors from "cors";
+
+const allowedOrigins = [
+  "http://localhost:5173",                       // local dev
+  "https://messageapp-ccvm.vercel.app",         // current frontend
+  "https://messageapp-umber.vercel.app"         // other frontends you might use
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy: origin ${origin} not allowed`));
+    }
+  },
+  credentials: true
+}));
+
 
 app.use(express.json());
 
