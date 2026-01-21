@@ -1,8 +1,9 @@
 import { io } from "socket.io-client";
 
 
-const socket = io("https://messageapp-production-2dee.up.railway.app", {
+const socket = io("https://messageapp-dj2x.onrender.com", {
   withCredentials: true,
-  transports: ["websocket"] 
+  transports: ["websocket"]
 });
+
 export default socket;
