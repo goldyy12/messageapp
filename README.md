@@ -9,7 +9,7 @@ A modern, full-stack chat application built with the PERN stack (PostgreSQL, Exp
 ![App Screenshot](https://messageapp-av9z.vercel.app/screenshot.png)
 
 ## 🚀 Live Demo
-* **Frontend:** [https://messageapp-av9z.vercel.app/](https://messageapp-av9z.vercel.app/)
+* **Frontend:** [https://messageapp-ccvm.vercel.app/login](https://messageapp-ccvm.vercel.app/login)
 
 
 ✨ Features
