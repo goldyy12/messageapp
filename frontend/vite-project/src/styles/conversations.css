@@ -1,18 +1,15 @@
-
-
 .conversations-container {
   display: flex;
-  flex-direction: row; 
-  width: 100%;      
-  width: 1400px; 
-  margin-left: 100px;
-  height: 80vh;       
+  flex-direction: row;
+  width: 95%; /* Changed from 1400px */
+  max-width: 1400px; /* Keeps it from getting too large on huge monitors */
+  margin: 0 auto; /* Centers the container */
+  height: 80vh;
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
   overflow-y: auto;
 }
-
 
 .friends-list {
   width: 300px;
@@ -31,11 +28,10 @@
 .friend-item:hover {
   background-color: #e0e0e0;
 }
-.chat{
-    color: white;
-    align-items: start;
+.chat {
+  color: white;
+  align-items: start;
 }
-
 
 .chat-area {
   flex: 1; /* take remaining width */
@@ -92,24 +88,24 @@ h2 {
   padding: 8px 16px;
   border: none;
   border-radius: 12px;
-  background-color: #128C7E;
+  background-color: #128c7e;
   color: white;
   cursor: pointer;
 }
 
 .send-button:hover {
-  background-color: #075E54;
+  background-color: #075e54;
 }
 
 .message-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; 
+  align-items: flex-start;
   position: relative;
 }
 
 .my-message-wrapper {
-  align-items: flex-end; 
+  align-items: flex-end;
 }
 
 .message-time {
@@ -141,5 +137,11 @@ h2 {
   border: 1px dashed rgba(59, 130, 246, 0.4);
 }
 
-.empty-state h2 { font-size: 1.8rem; margin-bottom: 8px; }
-.empty-state p { color: #94a3b8; max-width: 300px; }
+.empty-state h2 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+.empty-state p {
+  color: #94a3b8;
+  max-width: 300px;
+}

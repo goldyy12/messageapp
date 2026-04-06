@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext ,useRef} from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import api from "../api";
 import "../styles/groups.css";
 import socket from "../socket";
@@ -14,9 +14,8 @@ export default function Groups() {
   const [friends, setFriends] = useState([]);
   const [friendsMenu, setFriendsMenu] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
-    const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
-  
   const { user } = useContext(AuthContext);
 
   const getGroups = async () => {
@@ -33,6 +32,11 @@ export default function Groups() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  const onkeyDown = (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  };
 
   const addGroup = async () => {
     if (!newGroupName.trim()) return;
@@ -43,14 +47,13 @@ export default function Groups() {
     } catch (err) {
       console.error(err);
     }
-
   };
 
   const leaveGroup = async () => {
     if (!selectedGroup) return;
     try {
       await api.delete("/groups/leavegroup", {
-        data: { groupId: selectedGroup.id },  
+        data: { groupId: selectedGroup.id },
       });
       setSelectedGroup(null);
       getGroups();
@@ -59,19 +62,18 @@ export default function Groups() {
     }
   };
 
-const getFriends = async () => {
-  if (!selectedGroup) return;
+  const getFriends = async () => {
+    if (!selectedGroup) return;
 
-  try {
-    const res = await api.get(
-      `/groups/${selectedGroup.id}/available-friends`
-    );
-    setFriends(res.data);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
+    try {
+      const res = await api.get(
+        `/groups/${selectedGroup.id}/available-friends`,
+      );
+      setFriends(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -99,31 +101,29 @@ const getFriends = async () => {
     }
   };
 
- const addMember = async (memberId) => {
-  try {
-    await api.post("/groups/addmember", {
-      groupId: selectedGroup.id,
-      memberID: memberId,
-    });
+  const addMember = async (memberId) => {
+    try {
+      await api.post("/groups/addmember", {
+        groupId: selectedGroup.id,
+        memberID: memberId,
+      });
 
-    setFriends((prev) => {
-      const updated = prev.filter((f) => f.id !== memberId);
-      if (updated.length === 0) setFriendsMenu(false);
-      return updated;
-    });
-
-  } catch (err) {
-    console.error(err);
-  }
-};
+      setFriends((prev) => {
+        const updated = prev.filter((f) => f.id !== memberId);
+        if (updated.length === 0) setFriendsMenu(false);
+        return updated;
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     getGroups();
   }, []);
-    useEffect(() => {
+  useEffect(() => {
     scrollToBottom();
   }, [groupMessages]);
-
 
   useEffect(() => {
     if (!selectedGroup) return;
@@ -144,7 +144,6 @@ const getFriends = async () => {
 
   return (
     <div className="groups-container">
-      
       <div className="groups-left">
         <div className="add-group">
           <input
@@ -168,14 +167,18 @@ const getFriends = async () => {
         </div>
       </div>
 
-      
       <div className="groups-right">
-         
-
         {!selectedGroup ? (
           <div className="empty-state">
             <div className="icon-circle">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -183,21 +186,25 @@ const getFriends = async () => {
               </svg>
             </div>
             <h2>Select a Group</h2>
-            <p>Pick a community from the left sidebar to join the conversation.</p>
+            <p>
+              Pick a community from the left sidebar to join the conversation.
+            </p>
           </div>
         ) : (
           <>
-          <div className="buttons">
-          <button
-          className="add"
-              onClick={() => {
-                setFriendsMenu((prev) => !prev);
-                getFriends();
-              }}
-            >
-              +
-            </button>
-            <button className="leave" onClick={leaveGroup}>Leave</button>
+            <div className="buttons">
+              <button
+                className="add"
+                onClick={() => {
+                  setFriendsMenu((prev) => !prev);
+                  getFriends();
+                }}
+              >
+                +
+              </button>
+              <button className="leave" onClick={leaveGroup}>
+                Leave
+              </button>
             </div>
             <div className="messages-container">
               {groupMessages.map((msg) => {
@@ -225,7 +232,6 @@ const getFriends = async () => {
                       <strong>{msg.sender.username}:</strong> {msg.text}
                     </p>
                     <span className="message-time">{time}</span>
-                    
                   </div>
                 );
               })}
@@ -238,39 +244,44 @@ const getFriends = async () => {
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 placeholder="Type a message..."
+                onKeyDown={onkeyDown}
               />
               <button className="send-button" type="submit">
                 Send
               </button>
             </form>
 
-           
-           {friendsMenu && (
-  <div className="modal-overlay" onClick={() => setFriendsMenu(false)}>
-    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-      <h3>Add members</h3>
+            {friendsMenu && (
+              <div
+                className="modal-overlay"
+                onClick={() => setFriendsMenu(false)}
+              >
+                <div
+                  className="modal-content"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3>Add members</h3>
 
-      <div className="modal-friends-list">
-        {friends.map((friend) => (
-          <div key={friend.id} className="friend-item">
-            <p>{friend.username}</p>
-            <button onClick={() => addMember(friend.id)}>
-              Add member
-            </button>
-          </div>
-        ))}
-      </div>
+                  <div className="modal-friends-list">
+                    {friends.map((friend) => (
+                      <div key={friend.id} className="friend-item">
+                        <p>{friend.username}</p>
+                        <button onClick={() => addMember(friend.id)}>
+                          Add member
+                        </button>
+                      </div>
+                    ))}
+                  </div>
 
-      <button
-        className="modal-close"
-        onClick={() => setFriendsMenu(false)}
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
-
+                  <button
+                    className="modal-close"
+                    onClick={() => setFriendsMenu(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>

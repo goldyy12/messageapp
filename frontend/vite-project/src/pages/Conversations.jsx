@@ -17,7 +17,6 @@ export default function Conversations() {
 
   const { user } = useContext(AuthContext);
 
-  
   useEffect(() => {
     if (!user?.userId) return;
     socket.emit("joinUser", user.userId);
@@ -27,7 +26,6 @@ export default function Conversations() {
     };
   }, [user]);
 
- 
   useEffect(() => {
     socket.on("privateMessage", (message) => {
       if (
@@ -41,8 +39,12 @@ export default function Conversations() {
 
     return () => socket.off("privateMessage");
   }, [friendClicked]);
+  const handlekeyDown = (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  };
 
-  
   useEffect(() => {
     const getFriends = async () => {
       try {
@@ -55,7 +57,6 @@ export default function Conversations() {
     getFriends();
   }, []);
 
- 
   const handleClick = async (id) => {
     try {
       const res = await api.get(`/friends/${id}`);
@@ -70,13 +71,14 @@ export default function Conversations() {
     try {
       const res = await api.get(`/messages/${id}`);
       // Reverse messages so oldest appear first
-      setAllMessages(res.data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)));
+      setAllMessages(
+        res.data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
+      );
     } catch (error) {
       console.error("Failed to load messages", error);
     }
   };
 
- 
   const sendMessage = async () => {
     if (!sentMessage || !friendClicked) return;
 
@@ -86,7 +88,6 @@ export default function Conversations() {
         receiverId: friendClicked.id,
       });
 
-    
       setAllMessages((prev) => [...prev, res.data]);
       setSentMessage("");
     } catch (error) {
@@ -94,14 +95,12 @@ export default function Conversations() {
     }
   };
 
-  
   useEffect(() => {
     scrollToBottom();
   }, [allMessages]);
 
   return (
     <div className="conversations-container">
-      
       <div className="friends-list">
         <h2>My friends</h2>
         {friends.map((friend) => (
@@ -115,7 +114,6 @@ export default function Conversations() {
         ))}
       </div>
 
-     
       <div className="chat-area">
         {friendClicked ? (
           <>
@@ -124,7 +122,7 @@ export default function Conversations() {
               {allMessages.map((msg) => {
                 const messageTime = new Date(msg.createdAt).toLocaleTimeString(
                   [],
-                  { hour: "2-digit", minute: "2-digit" }
+                  { hour: "2-digit", minute: "2-digit" },
                 );
 
                 return (
@@ -159,8 +157,9 @@ export default function Conversations() {
                 value={sentMessage}
                 onChange={(e) => setSentMessage(e.target.value)}
                 placeholder="Type a message"
+                onKeyDown={handlekeyDown}
               />
-              <button className="send-button" onClick={sendMessage}>
+              <button className="send-button" onClick={sendMessage} onke>
                 Send
               </button>
             </div>
@@ -168,7 +167,14 @@ export default function Conversations() {
         ) : (
           <div className="empty-state">
             <div className="icon-circle">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
