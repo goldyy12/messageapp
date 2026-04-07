@@ -193,3 +193,7 @@ h2 {
   margin: 0;
   word-wrap: break-word;
 }
+.active-group {
+  background-color: #3b82f6;
+  color: white;
+}

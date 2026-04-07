@@ -15,6 +15,8 @@ export default function Groups() {
   const [friendsMenu, setFriendsMenu] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [file, setFile] = useState(null);
 
   const { user } = useContext(AuthContext);
 
@@ -23,8 +25,9 @@ export default function Groups() {
       const res = await api.get("/groups");
       setGroups(res.data);
     } catch (err) {
+      console.error("Failed to load groups", err);
       setError("Failed to load groups");
-      console.error(err);
+      console.error(err.data?.error || err.message);
     } finally {
       setIsLoading(false);
     }
@@ -77,20 +80,26 @@ export default function Groups() {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!messageText.trim() || !selectedGroup) return;
+    if ((!messageText.trim() && !file) || !selectedGroup) return;
 
     try {
-      const res = await api.post("/groups/message", {
-        groupId: selectedGroup.id,
-        text: messageText,
+      const formData = new FormData();
+      formData.append("groupId", selectedGroup.id);
+      if (messageText) formData.append("text", messageText);
+      if (file) formData.append("file", file);
+
+      const res = await api.post("/groups/message", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+
       setGroupMessages((prev) => [...prev, res.data]);
       setMessageText("");
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       console.error(err);
     }
   };
-
   const handleGroupClick = async (id) => {
     try {
       const res = await api.get(`/groups/${id}`);
@@ -130,15 +139,20 @@ export default function Groups() {
 
     socket.emit("joinGroup", selectedGroup.id);
 
-    socket.on("newMessage", (message) => {
-      setGroupMessages((prev) => [...prev, message]);
-    });
+    const handleNewMessage = (message) => {
+      // Only add if message belongs to the currently active group
+      if (message.groupId === selectedGroup.id) {
+        setGroupMessages((prev) => [...prev, message]);
+      }
+    };
+
+    socket.on("newMessage", handleNewMessage);
 
     return () => {
-      socket.off("newMessage");
+      socket.off("newMessage", handleNewMessage);
+      socket.emit("leaveGroup", selectedGroup.id); // Add 'leave' event on backend
     };
   }, [selectedGroup]);
-
   if (isLoading) return <p>Loading groups...</p>;
   if (error) return <p>{error}</p>;
 
@@ -158,7 +172,7 @@ export default function Groups() {
           {groups.map((group) => (
             <p
               key={group.id}
-              className="group-item"
+              className={`group-item ${selectedGroup?.id === group.id ? "active-group" : ""}`}
               onClick={() => handleGroupClick(group.id)}
             >
               {group.name}
@@ -233,6 +247,15 @@ export default function Groups() {
                     >
                       <strong>{msg.sender.username}:</strong> {msg.text}
                     </p>
+                    {msg.fileUrl && (
+                      <img
+                        src={msg.fileUrl}
+                        alt="attachment"
+                        className="chat-image"
+                        onClick={() => window.open(msg.fileUrl, "_blank")}
+                      />
+                    )}
+
                     <span className="message-time">{time}</span>
                   </div>
                 );
@@ -241,11 +264,24 @@ export default function Groups() {
             </div>
 
             <form onSubmit={sendMessage} className="input-container">
+              <label htmlFor="file-upload" className="file-upload-label">
+                📎
+              </label>
+
+              <input
+                id="file-upload"
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => setFile(e.target.files[0])}
+                style={{ display: "none" }}
+              />
               <input
                 className="message-input"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={
+                  file ? `Attached: ${file.name}` : "Type a message..."
+                }
                 onKeyDown={onkeyDown}
               />
               <button className="send-button" type="submit">

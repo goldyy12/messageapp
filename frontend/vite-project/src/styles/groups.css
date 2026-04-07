@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: row;
   max-width: 1300px;
-  
+
   width: 100%;
   margin: 0 auto;
   height: 80vh;
@@ -12,15 +12,13 @@
   margin-left: 100px;
 }
 
-
 .groups-left {
   width: 300px;
   border-right: 1px solid #ccc;
   overflow-y: auto;
   background-color: #263a53;
   padding: 10px;
-  color: white
-  ;
+  color: white;
 }
 
 .add-group {
@@ -40,13 +38,13 @@
   padding: 6px 10px;
   border-radius: 8px;
   border: none;
-  background-color: #128C7E;
+  background-color: #128c7e;
   color: white;
   cursor: pointer;
 }
 
 .add-group button:hover {
-  background-color: #075E54;
+  background-color: #075e54;
 }
 
 .groups-list p,
@@ -130,13 +128,13 @@
   padding: 8px 16px;
   border: none;
   border-radius: 12px;
-  background-color: #128C7E;
+  background-color: #128c7e;
   color: white;
   cursor: pointer;
 }
 
 .send-button:hover {
-  background-color: #075E54;
+  background-color: #075e54;
 }
 
 .friend-item {
@@ -151,13 +149,13 @@
   padding: 4px 8px;
   border: none;
   border-radius: 8px;
-  background-color: #128C7E;
+  background-color: #128c7e;
   color: white;
   cursor: pointer;
 }
 
 .friend-item button:hover {
-  background-color: #075E54;
+  background-color: #075e54;
 }
 
 .modal-overlay {
@@ -172,29 +170,29 @@
   justify-content: center;
   z-index: 1000;
 }
-.buttons{
+.buttons {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
   justify-content: flex-end;
 }
-.add{
-  background-color: #128C7E;
+.add {
+  background-color: #128c7e;
   color: white;
   border: none;
   padding: 6px 11px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 24px;
-  font-weight:bolder;
+  font-weight: bolder;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.add:hover{
-  background-color: #075E54;
+.add:hover {
+  background-color: #075e54;
 }
-.leave{
+.leave {
   background-color: #942c2c;
   color: white;
   border: none;
@@ -202,12 +200,12 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 15px;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.leave:hover{
+.leave:hover {
   background-color: #cc0000;
 }
 
@@ -224,14 +222,12 @@
   color: black;
 }
 
-
 .modal-friends-list {
   overflow-y: auto;
   max-height: 45vh;
   border: 1px solid #ddd;
   border-radius: 8px;
 }
-
 
 .modal-close {
   align-self: flex-end;
@@ -269,8 +265,60 @@
   border: 1px dashed rgba(59, 130, 246, 0.4);
 }
 
-.empty-state h2 { font-size: 1.8rem; margin-bottom: 8px; }
-.empty-state p { color: #94a3b8; max-width: 300px; }
+.empty-state h2 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+.empty-state p {
+  color: #94a3b8;
+  max-width: 300px;
+}
 
+.chat-image-attachment {
+  display: block;
+  max-width: 250px; /* Limits size in the bubble */
+  max-height: 250px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  object-fit: cover;
+}
 
+.file-upload-label {
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 10px;
+  transition: transform 0.2s;
+}
 
+.file-upload-label:hover {
+  transform: scale(1.2);
+}
+
+/* If a file is selected, maybe change the color of the paperclip */
+.input-container:has(input[type="file"]:valid) .file-upload-label {
+  color: #007bff;
+}
+.chat-image {
+  display: block;
+  max-width: 100%; /* Responds to the bubble size */
+  width: 250px; /* Good default width */
+  height: auto; /* Maintains aspect ratio */
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  object-fit: cover;
+  flex-shrink: 0; /* Prevents flexbox from squishing it */
+}
+
+/* Ensure the bubble can fit the image */
+.message {
+  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-text {
+  margin: 0;
+  word-wrap: break-word;
+}

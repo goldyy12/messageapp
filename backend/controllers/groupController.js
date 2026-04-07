@@ -20,6 +20,9 @@ export const getGroups = async (req, res) => {
 export const addGroup = async (req, res) => {
   const userId = getUserId(req);
   const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: "Group name is required" });
+  }
 
   try {
     const group = await prisma.group.create({
@@ -68,12 +71,28 @@ export const getGroupById = async (req, res) => {
 };
 
 export const newGroupMsg = async (req, res) => {
+  // Cloudinary/Multer puts the URL in req.file.path
+  const fileUrl = req.file ? req.file.path : null;
+
   const userId = getUserId(req);
   const { groupId, text } = req.body;
 
+  // 1. Check if groupId exists
+  if (!groupId) {
+    return res.status(400).json({ error: "groupId is required" });
+  }
+
+  // 2. Convert to number safely
+  const parsedGroupId = parseInt(groupId, 10);
+
+  // 3. Check if conversion resulted in NaN
+  if (isNaN(parsedGroupId)) {
+    return res.status(400).json({ error: "groupId must be a valid number" });
+  }
+
   try {
     const isMember = await prisma.groupMember.findFirst({
-      where: { groupId: Number(groupId), userId },
+      where: { groupId: parsedGroupId, userId },
     });
 
     if (!isMember)
@@ -82,12 +101,19 @@ export const newGroupMsg = async (req, res) => {
         .json({ error: "You are not a member of this group" });
 
     const message = await prisma.groupMessage.create({
-      data: { text, groupId: Number(groupId), senderId: userId },
+      data: {
+        text: text || "", // Ensure text is at least an empty string
+        groupId: parsedGroupId,
+        senderId: userId,
+        fileUrl,
+      },
       include: { sender: { select: { id: true, username: true } } },
     });
+
     io.to(`group_${groupId}`).emit("newMessage", message);
     res.status(201).json(message);
   } catch (error) {
+    console.error("Prisma Error:", error.message); // This shows in your terminal
     res.status(500).json({ error: error.message });
   }
 };
@@ -109,7 +135,6 @@ export const addToGroup = async (req, res) => {
       return res.status(400).json({ error: "User already in group" });
     }
 
-    
     const member = await prisma.groupMember.create({
       data: {
         groupId: Number(groupId),
@@ -139,15 +164,15 @@ export const getAvailableFriends = async (req, res) => {
     const availableFriendsRaw = await prisma.friend.findMany({
       where: {
         userId,
-        friendId: { notIn: groupMembers.map(member => member.userId) },
+        friendId: { notIn: groupMembers.map((member) => member.userId) },
       },
       include: { friend: { select: { id: true, username: true } } },
     });
 
     // Map to simple structure
-    const availableFriends = availableFriendsRaw.map(f => ({
+    const availableFriends = availableFriendsRaw.map((f) => ({
       id: f.friend.id,
-      username: f.friend.username
+      username: f.friend.username,
     }));
 
     res.json(availableFriends);
@@ -167,4 +192,4 @@ export const leaveGroup = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
+};

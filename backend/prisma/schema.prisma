@@ -80,6 +80,7 @@ model GroupMessage {
   sender    User     @relation(fields: [senderId], references: [id])
   senderId  Int
   text      String?
-  imageUrl  String?
+ 
   createdAt DateTime @default(now())
+  fileUrl  String?
 }
