@@ -21,7 +21,7 @@ export const getFriends = async (req, res) => {
     const friendList = friends.map((f) => f.friend);
 
     const uniqueFriends = Array.from(
-      new Map(friendList.map((f) => [f.id, f])).values()
+      new Map(friendList.map((f) => [f.id, f])).values(),
     );
 
     res.json(uniqueFriends);
@@ -107,7 +107,6 @@ export const addFriend = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
 export const getFriendsOnline = async (req, res) => {
   const userId = getUserId(req);
 
@@ -127,32 +126,28 @@ export const getFriendsOnline = async (req, res) => {
       return res.json([]);
     }
 
-   
-    const oneHourAgo = new Date(Date.now() - 5 * 60 * 60 * 1000);
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
-   const onlineFriends = await prisma.user.findMany({
-  where: {
-    id: { in: friendIds },
-    lastActive: {
-      not: null,
-      gte: oneHourAgo,
-    },
-  },
-  select: {
-    id: true,
-    username: true,
-    lastActive: true,
-  },
-});
+    const onlineFriends = await prisma.user.findMany({
+      where: {
+        id: { in: friendIds },
+        lastActive: {
+          gte: oneHourAgo, // This implicitly filters out null values
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        lastActive: true,
+      },
+    });
 
-
-    res.json(onlineFriends);
+    return res.json(onlineFriends);
   } catch (error) {
     console.error("getFriendsOnline error:", error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 export const getFriendByID = async (req, res) => {
   const userId = getUserId(req);
   const { id } = req.params;

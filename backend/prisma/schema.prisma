@@ -36,6 +36,7 @@ model Message {
   sender      User     @relation("sentMessages", fields: [senderId], references: [id])
   senderId    Int
   recipient   User     @relation("receivedMessages", fields: [recipientId], references: [id])
+  fileUrl    String?
   recipientId Int
   text        String?
   imageUrl    String?

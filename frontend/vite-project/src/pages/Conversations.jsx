@@ -9,7 +9,9 @@ export default function Conversations() {
   const [friendClicked, setFriendClicked] = useState(null);
   const [sentMessage, setSentMessage] = useState("");
   const [allMessages, setAllMessages] = useState([]);
+  const [file, setFile] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,21 +82,25 @@ export default function Conversations() {
   };
 
   const sendMessage = async () => {
-    if (!sentMessage || !friendClicked) return;
+    if ((!sentMessage && !file) || !friendClicked) return;
 
     try {
-      const res = await api.post("/messages", {
-        text: sentMessage,
-        receiverId: friendClicked.id,
+      const formData = new FormData();
+      formData.append("text", sentMessage || ""); // always include text
+      formData.append("receiverId", friendClicked.id);
+      if (file) formData.append("file", file);
+
+      const res = await api.post("/messages", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       setAllMessages((prev) => [...prev, res.data]);
       setSentMessage("");
+      setFile(null);
     } catch (error) {
       console.error("Failed to send message", error);
     }
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [allMessages]);
@@ -120,10 +126,13 @@ export default function Conversations() {
             <h2 className="chat">Chat with {friendClicked.username}</h2>
             <div className="messages-container">
               {allMessages.map((msg) => {
-                const messageTime = new Date(msg.createdAt).toLocaleTimeString(
-                  [],
-                  { hour: "2-digit", minute: "2-digit" },
-                );
+                const messageTime = new Date(msg.createdAt).toLocaleString([], {
+                  year: "numeric",
+                  month: "numeric",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
 
                 return (
                   <div
@@ -134,32 +143,54 @@ export default function Conversations() {
                         : "other-message-wrapper"
                     }`}
                   >
-                    <p
+                    <div
                       className={`message ${
                         msg.senderId === user.userId
                           ? "my-message"
                           : "other-message"
                       }`}
                     >
-                      {msg.text}
-                    </p>
+                      {/* Render the image if fileUrl exists */}
+                      {msg.fileUrl && (
+                        <img
+                          src={msg.fileUrl}
+                          alt="attachment"
+                          className="chat-image"
+                          onClick={() => window.open(msg.fileUrl, "_blank")}
+                        />
+                      )}
+
+                      {/* Render the text if it exists */}
+                      {msg.text && <p className="message-text">{msg.text}</p>}
+                    </div>
                     <span className="message-time">{messageTime}</span>
                   </div>
                 );
               })}
-
               <div ref={messagesEndRef} />
             </div>
 
             <div className="input-container">
+              <label htmlFor="file-upload" className="file-upload-label">
+                📎
+              </label>
+              <input
+                id="file-upload"
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => setFile(e.target.files[0])}
+                style={{ display: "none" }}
+              />
               <input
                 className="message-input"
                 value={sentMessage}
                 onChange={(e) => setSentMessage(e.target.value)}
-                placeholder="Type a message"
+                placeholder={
+                  file ? `Attached: ${file.name}` : "Type a message..."
+                }
                 onKeyDown={handlekeyDown}
               />
-              <button className="send-button" onClick={sendMessage} onke>
+              <button className="send-button" onClick={sendMessage}>
                 Send
               </button>
             </div>

@@ -208,11 +208,13 @@ export default function Groups() {
             </div>
             <div className="messages-container">
               {groupMessages.map((msg) => {
-                const time = new Date(msg.createdAt).toLocaleTimeString([], {
+                const time = new Date(msg.createdAt).toLocaleString([], {
+                  year: "numeric",
+                  month: "numeric",
+                  day: "numeric",
                   hour: "2-digit",
                   minute: "2-digit",
                 });
-
                 const isMyMessage = msg.senderId === user.userId;
 
                 return (

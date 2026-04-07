@@ -145,3 +145,51 @@ h2 {
   color: #94a3b8;
   max-width: 300px;
 }
+.chat-image-attachment {
+  display: block;
+  max-width: 250px; /* Limits size in the bubble */
+  max-height: 250px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  object-fit: cover;
+}
+
+.file-upload-label {
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 10px;
+  transition: transform 0.2s;
+}
+
+.file-upload-label:hover {
+  transform: scale(1.2);
+}
+
+/* If a file is selected, maybe change the color of the paperclip */
+.input-container:has(input[type="file"]:valid) .file-upload-label {
+  color: #007bff;
+}
+.chat-image {
+  display: block;
+  max-width: 100%; /* Responds to the bubble size */
+  width: 250px; /* Good default width */
+  height: auto; /* Maintains aspect ratio */
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  object-fit: cover;
+  flex-shrink: 0; /* Prevents flexbox from squishing it */
+}
+
+/* Ensure the bubble can fit the image */
+.message {
+  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-text {
+  margin: 0;
+  word-wrap: break-word;
+}

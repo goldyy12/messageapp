@@ -1,3 +1,4 @@
+import "dotenv/config";
 import http from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
@@ -5,14 +6,14 @@ import app from "./app.js";
 const server = http.createServer(app);
 
 const allowedOrigins = [
-  "http://localhost:5173",                         // local dev
-  "https://messageapp-ccvm.vercel.app",           // frontend 1
-  "https://messageapp-umber.vercel.app"           // frontend 2
+  "http://localhost:5173", // local dev
+  "https://messageapp-ccvm.vercel.app", // frontend 1
+  "https://messageapp-umber.vercel.app", // frontend 2
 ];
 
 const io = new Server(server, {
   cors: {
-    origin: function(origin, callback) {
+    origin: function (origin, callback) {
       // allow requests with no origin (like Postman) or in allowedOrigins
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -21,8 +22,8 @@ const io = new Server(server, {
       }
     },
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 const onlineUsers = new Map();
@@ -30,7 +31,6 @@ const onlineUsers = new Map();
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  
   socket.on("joinUser", (userId) => {
     onlineUsers.set(userId, socket.id);
     console.log(`User ${userId} connected with socket ${socket.id}`);
@@ -46,11 +46,13 @@ io.on("connection", (socket) => {
     console.log("User disconnected:", socket.id);
   });
 });
-
-
+app.use((err, req, res, next) => {
+  console.error("Global error handler:", err);
+  res.status(500).json({ error: "Internal Server Error" });
+});
 export { io, onlineUsers };
 const PORT = process.env.PORT || 8080;
 
 server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

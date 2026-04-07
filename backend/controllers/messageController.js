@@ -2,16 +2,18 @@ import prisma from "../db.js";
 import { getUserId } from "../utils/getUserId.js";
 import { io, onlineUsers } from "../server.js";
 
-
 export const sendMessage = async (req, res) => {
+  console.log("🚀 sendMessage hit");
   const senderId = getUserId(req);
   const { receiverId, text } = req.body;
+  const fileUrl = req.file ? req.file.path : null;
 
   if (!senderId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
+  const receiverIdNum = Number(receiverId);
 
-  if (!receiverId || !text) {
+  if (!receiverId || (!text && !fileUrl)) {
     return res.status(400).json({ error: "Missing fields" });
   }
 
@@ -19,20 +21,20 @@ export const sendMessage = async (req, res) => {
     const message = await prisma.message.create({
       data: {
         senderId,
-        recipientId: receiverId, 
-        text,
+        recipientId: receiverIdNum,
+        text: text || "",
+        fileUrl,
       },
     });
-const receiverSocketId = onlineUsers.get(receiverId);
-if (receiverSocketId) {
-  io.to(receiverSocketId).emit("privateMessage", message);
-}
+    const receiverSocketId = onlineUsers.get(receiverIdNum);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("privateMessage", message);
+    }
 
-                                            
-const senderSocketId = onlineUsers.get(senderId);
-if (senderSocketId) {
-  io.to(senderSocketId).emit("privateMessage", message);
-}
+    const senderSocketId = onlineUsers.get(senderId);
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("privateMessage", message);
+    }
 
     res.status(201).json(message);
   } catch (error) {
@@ -43,8 +45,7 @@ if (senderSocketId) {
 
 export const getMessages = async (req, res) => {
   const userId = getUserId(req);
-    const friendId = Number(req.params.friendId);
-
+  const friendId = Number(req.params.friendId);
 
   try {
     if (!userId) {
