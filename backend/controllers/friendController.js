@@ -130,10 +130,11 @@ export const getFriendsOnline = async (req, res) => {
 
     const onlineFriends = await prisma.user.findMany({
       where: {
-        id: { in: friendIds },
-        lastActive: {
-          gte: oneHourAgo, // This implicitly filters out null values
-        },
+        AND: [
+          { id: { in: friendIds } },
+          { lastActive: { gte: oneHourAgo } },
+          { lastActive: { not: null } },
+        ],
       },
       select: {
         id: true,
