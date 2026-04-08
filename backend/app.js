@@ -15,9 +15,8 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  "https://messageapp-ccvm.vercel.app", // current frontend
-  "https://messageapp-umber.vercel.app", // other frontends you might use
+  "http://localhost:5173",
+  process.env.CLIENT_URL || "https://messageapp-ccvm.vercel.app",
 ];
 
 app.use(

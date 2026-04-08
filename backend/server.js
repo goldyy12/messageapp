@@ -6,9 +6,8 @@ import app from "./app.js";
 const server = http.createServer(app);
 
 const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  "https://messageapp-ccvm.vercel.app", // frontend 1
-  "https://messageapp-umber.vercel.app", // frontend 2
+  "http://localhost:5173",
+  process.env.CLIENT_URL || "https://messageapp-ccvm.vercel.app",
 ];
 
 const io = new Server(server, {
