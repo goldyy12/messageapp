@@ -71,38 +71,37 @@ export const getGroupById = async (req, res) => {
 };
 
 export const newGroupMsg = async (req, res) => {
-  // Cloudinary/Multer puts the URL in req.file.path
-  const fileUrl = req.file ? req.file.path : null;
-
-  const userId = getUserId(req);
-  const { groupId, text } = req.body;
-
-  // 1. Check if groupId exists
-  if (!groupId) {
-    return res.status(400).json({ error: "groupId is required" });
-  }
-
-  // 2. Convert to number safely
-  const parsedGroupId = parseInt(groupId, 10);
-
-  // 3. Check if conversion resulted in NaN
-  if (isNaN(parsedGroupId)) {
-    return res.status(400).json({ error: "groupId must be a valid number" });
-  }
-
   try {
+    // 1. Check if req.body even exists to prevent the 'destructure' crash
+    if (!req.body) {
+      return res
+        .status(400)
+        .json({ error: "No data received. Ensure Multer is configured." });
+    }
+
+    const fileUrl = req.file ? req.file.path : null;
+    const userId = getUserId(req);
+    const { groupId, text } = req.body;
+
+    if (!groupId) {
+      return res.status(400).json({ error: "groupId is required" });
+    }
+
+    const parsedGroupId = parseInt(groupId, 10);
+    if (isNaN(parsedGroupId)) {
+      return res.status(400).json({ error: "groupId must be a valid number" });
+    }
+
+    // ... rest of your Prisma logic
     const isMember = await prisma.groupMember.findFirst({
       where: { groupId: parsedGroupId, userId },
     });
 
-    if (!isMember)
-      return res
-        .status(403)
-        .json({ error: "You are not a member of this group" });
+    if (!isMember) return res.status(403).json({ error: "Not a member" });
 
     const message = await prisma.groupMessage.create({
       data: {
-        text: text || "", // Ensure text is at least an empty string
+        text: text || "",
         groupId: parsedGroupId,
         senderId: userId,
         fileUrl,
@@ -113,8 +112,8 @@ export const newGroupMsg = async (req, res) => {
     io.to(`group_${groupId}`).emit("newMessage", message);
     res.status(201).json(message);
   } catch (error) {
-    console.error("Prisma Error:", error.message); // This shows in your terminal
-    res.status(500).json({ error: error.message });
+    console.error("Critical Error in newGroupMsg:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
