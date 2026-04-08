@@ -3,7 +3,6 @@ import { getUserId } from "../utils/getUserId.js";
 import { io, onlineUsers } from "../server.js";
 
 export const sendMessage = async (req, res) => {
-  console.log("🚀 sendMessage hit");
   const senderId = getUserId(req);
   const { receiverId, text } = req.body;
   const fileUrl = req.file ? req.file.path : null;
@@ -13,7 +12,7 @@ export const sendMessage = async (req, res) => {
   }
   const receiverIdNum = Number(receiverId);
 
-  if (!receiverId || (!text && !fileUrl)) {
+  if (!receiverIdNum || (!text && !fileUrl)) {
     return res.status(400).json({ error: "Missing fields" });
   }
 
