@@ -8,19 +8,7 @@ const router = express.Router();
 router.use(authenticateToken);
 const upload = multer({ storage });
 
-router.post(
-  "/",
-  (req, res, next) => {
-    const contentType = req.headers["content-type"] || "";
-
-    if (contentType.includes("multipart/form-data")) {
-      upload.single("file")(req, res, next);
-    } else {
-      next();
-    }
-  },
-  sendMessage,
-);
+router.post("/", upload.single("file"), sendMessage);
 router.get("/:friendId", getMessages);
 
 export default router;
