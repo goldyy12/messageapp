@@ -8,7 +8,20 @@ const router = express.Router();
 router.use(authenticateToken);
 const upload = multer({ storage });
 
-router.post("/", upload.single("file"), sendMessage);
+// Handle both multipart/form-data (with file) and application/json (text only)
+router.post(
+  "/",
+  (req, res, next) => {
+    // If there's a file, use multer. Otherwise, parse JSON
+    if (req.is("multipart/form-data")) {
+      upload.single("file")(req, res, next);
+    } else {
+      express.json()(req, res, next);
+    }
+  },
+  sendMessage,
+);
+
 router.get("/:friendId", getMessages);
 
 export default router;
