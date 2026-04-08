@@ -7,6 +7,9 @@ export const sendMessage = async (req, res) => {
   const { receiverId, text } = req.body || {}; // safe fallback
   const fileUrl = req.file ? req.file.path : null;
 
+  console.log("CONTENT-TYPE:", req.headers["content-type"]);
+  console.log("REQ.BODY:", req.body);
+  console.log("REQ.FILE:", req.file);
   if (!senderId) return res.status(401).json({ error: "Unauthorized" });
 
   const receiverIdNum = Number(receiverId);
