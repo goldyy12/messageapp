@@ -4,14 +4,12 @@ import { io, onlineUsers } from "../server.js";
 
 export const sendMessage = async (req, res) => {
   const senderId = getUserId(req);
-  const { receiverId, text } = req.body;
+  const { receiverId, text } = req.body || {}; // safe fallback
   const fileUrl = req.file ? req.file.path : null;
 
-  if (!senderId) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  const receiverIdNum = Number(receiverId);
+  if (!senderId) return res.status(401).json({ error: "Unauthorized" });
 
+  const receiverIdNum = Number(receiverId);
   if (!receiverIdNum || (!text && !fileUrl)) {
     return res.status(400).json({ error: "Missing fields" });
   }
@@ -25,15 +23,13 @@ export const sendMessage = async (req, res) => {
         fileUrl,
       },
     });
+
     const receiverSocketId = onlineUsers.get(receiverIdNum);
-    if (receiverSocketId) {
+    if (receiverSocketId)
       io.to(receiverSocketId).emit("privateMessage", message);
-    }
 
     const senderSocketId = onlineUsers.get(senderId);
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("privateMessage", message);
-    }
+    if (senderSocketId) io.to(senderSocketId).emit("privateMessage", message);
 
     res.status(201).json(message);
   } catch (error) {
@@ -41,7 +37,6 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 export const getMessages = async (req, res) => {
   const userId = getUserId(req);
   const friendId = Number(req.params.friendId);
