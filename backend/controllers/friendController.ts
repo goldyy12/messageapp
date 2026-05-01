@@ -9,44 +9,34 @@ export const getFriends = async (req: Request, res: Response) => {
   const uID = Number(userId);
 
   try {
-    const cacheKey = `friends:${uID}`;
-
-    // CHECK IF REDIS IS CONNECTED
-    if (redisClient.isReady) {
-      const cachedFriends = await redisClient.get(cacheKey);
-      if (cachedFriends) {
-        console.log("Friends retrieved from cache");
-        return res.json(JSON.parse(cachedFriends));
-      }
-    } else {
-      console.warn("Redis not ready, skipping cache...");
-    }
-
     const friends = await prisma.friend.findMany({
       where: { userId: uID },
       include: {
         friend: {
-          select: { id: true, username: true, profilePic: true },
+          select: {
+            id: true,
+            username: true,
+            profilePic: true,
+          },
         },
       },
     });
 
+    const friendList = friends.map((f) => f.friend);
+
     const uniqueFriends = Array.from(
-      new Map(friends.map((f) => [f.friend.id, f.friend])).values(),
+      new Map(friendList.map((f) => [f.id, f])).values(),
     );
 
-    // 1. Send response immediately
+    // send response first
     res.json(uniqueFriends);
 
-    // 2. Only attempt to cache if Redis is ready
-    if (redisClient.isReady) {
-      await redisClient.set(cacheKey, JSON.stringify(uniqueFriends), {
-        EX: 3600,
-      });
-    }
+    // then cache
+
+    console.log("Friends retrieved from DB and cached");
   } catch (error: unknown) {
-    console.error("getFriends Error:", error);
-    res.status(500).json({ error: "Internal error" });
+    const msg = error instanceof Error ? error.message : "Internal error";
+    res.status(500).json({ error: msg });
   }
 };
 export const getAvailableFriends = async (req: Request, res: Response) => {
