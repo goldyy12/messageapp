@@ -280,40 +280,40 @@ export default function Groups() {
                 return (
                   <div
                     key={msg.id}
-                    className={`message-wrapper ${
-                      isMyMessage
-                        ? "my-message-wrapper"
-                        : "other-message-wrapper"
-                    }`}
+                    className={`message-wrapper ${isMyMessage ? "my-message-wrapper" : "other-message-wrapper"}`}
                   >
-                    <p
-                      className={`message ${
-                        isMyMessage ? "my-message" : "other-message"
-                      }`}
+                    {/* Combined Message Bubble */}
+                    <div
+                      className={`message ${isMyMessage ? "my-message" : "other-message"}`}
                     >
-                      <strong>{msg.sender.username || "Unknown User"}:</strong>{" "}
-                      {msg.text}
-                    </p>
-                    {msg.fileUrl && (
-                      <div className="file-attachment">
-                        {isImage(msg.fileUrl) ? (
-                          <img
-                            src={msg.fileUrl}
-                            alt="attachment"
-                            className="chat-image"
-                            onClick={() => window.open(msg.fileUrl, "_blank")}
-                          />
-                        ) : (
-                          <div
-                            className="document-link"
-                            onClick={() => window.open(msg.fileUrl, "_blank")}
-                          >
-                            <span className="file-icon">📄</span>
-                            <p>View PDF Document</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                      <strong>{msg.sender.username || "Unknown User"}:</strong>
+
+                      {/* Render text if it exists */}
+                      {msg.text && <p className="message-text">{msg.text}</p>}
+
+                      {/* Render file inside the same bubble */}
+                      {msg.fileUrl && (
+                        <div className="file-attachment">
+                          {isImage(msg.fileUrl) ? (
+                            <img
+                              src={msg.fileUrl}
+                              alt="attachment"
+                              className="chat-image"
+                              onClick={() => window.open(msg.fileUrl, "_blank")}
+                            />
+                          ) : (
+                            <div
+                              className="document-link"
+                              style={{ cursor: "pointer", marginTop: "5px" }}
+                              onClick={() => window.open(msg.fileUrl, "_blank")}
+                            >
+                              <span className="file-icon">📄</span>
+                              <span>View PDF Document</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     <span className="message-time">{time}</span>
                   </div>
