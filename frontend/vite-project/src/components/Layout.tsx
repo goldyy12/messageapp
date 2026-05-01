@@ -1,6 +1,6 @@
 import Navbar from "./navbar.jsx";
 import { Outlet } from "react-router-dom";
-import "../styles/Layout.css";
+import "../styles/layout.css";
 
 export default function Layout() {
   return (
