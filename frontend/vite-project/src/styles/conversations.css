@@ -1,16 +1,16 @@
 .conversations-container {
   display: flex;
   flex-direction: row;
-  width: 95%;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 95%; /* Changed from 1400px */
+  max-width: 1400px; /* Keeps it from getting too large on huge monitors */
+  margin: 0 auto; /* Centers the container */
   height: 80vh;
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
+  overflow-y: auto;
 }
 
-/* LEFT SIDEBAR */
 .friends-list {
   width: 300px;
   border-right: 1px solid #ccc;
@@ -26,73 +26,57 @@
 }
 
 .friend-item:hover {
-  background-color: #3b82f6;
+  background-color: #e0e0e0;
+}
+.chat {
   color: white;
+  align-items: start;
 }
 
-/* RIGHT CHAT AREA */
 .chat-area {
-  flex: 1;
+  flex: 1; /* take remaining width */
   display: flex;
   flex-direction: column;
   padding: 10px;
 }
 
-/* MESSAGES */
-.chat-messages {
-  flex: 1;
+.messages-container {
+  flex: 1; /* take available height */
   overflow-y: auto;
   padding: 10px;
   background-color: #263a53;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
-.chat-message-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.chat-message-wrapper.mine {
-  align-items: flex-end;
-}
-
-.chat-message {
+.message {
   padding: 8px 12px;
   border-radius: 12px;
-  max-width: 70%;
-  display: flex;
-  flex-direction: column;
-  word-wrap: break-word;
+  max-width: 60%;
+  margin: 4px 0;
 }
 
-.chat-message.mine {
+.my-message {
   background-color: #136fd8;
-  color: white;
+  align-self: flex-end;
 }
 
-.chat-message.other {
+.other-message {
   background-color: #929292;
-  color: white;
+  align-self: flex-start;
 }
 
-/* TIME */
-.message-time {
-  font-size: 10px;
-  color: #94a3b8;
-  margin-top: 2px;
-}
-
-/* INPUT AREA */
-.chat-input-container {
+.input-container {
   display: flex;
   margin-top: 10px;
 }
-
-.chat-input {
+h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+.message-input {
   flex: 1;
   padding: 8px;
   border-radius: 12px;
@@ -100,7 +84,7 @@
   margin-right: 8px;
 }
 
-.chat-send {
+.send-button {
   padding: 8px 16px;
   border: none;
   border-radius: 12px;
@@ -109,27 +93,26 @@
   cursor: pointer;
 }
 
-.chat-send:hover {
+.send-button:hover {
   background-color: #075e54;
 }
 
-/* FILE UPLOAD */
-.file-upload-label {
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0 10px;
-  transition: transform 0.2s;
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
 }
 
-.file-upload-label:hover {
-  transform: scale(1.2);
+.my-message-wrapper {
+  align-items: flex-end;
 }
 
-.file-upload-label.active {
-  color: #007bff;
+.message-time {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
 }
-
-/* EMPTY STATE */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -139,7 +122,6 @@
   text-align: center;
   background-color: #263a53;
   padding: 20px;
-  color: white;
 }
 
 .icon-circle {
@@ -155,20 +137,62 @@
   border: 1px dashed rgba(59, 130, 246, 0.4);
 }
 
-/* IMAGES */
-.chat-image {
+.empty-state h2 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+.empty-state p {
+  color: #94a3b8;
+  max-width: 300px;
+}
+.chat-image-attachment {
   display: block;
-  width: 250px;
-  max-width: 100%;
-  height: auto;
+  max-width: 250px; /* Limits size in the bubble */
+  max-height: 250px;
   border-radius: 8px;
   margin-bottom: 5px;
   cursor: pointer;
   object-fit: cover;
 }
 
-/* MESSAGE TEXT */
+.file-upload-label {
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 10px;
+  transition: transform 0.2s;
+}
+
+.file-upload-label:hover {
+  transform: scale(1.2);
+}
+
+/* If a file is selected, maybe change the color of the paperclip */
+.input-container:has(input[type="file"]:valid) .file-upload-label {
+  color: #007bff;
+}
+.chat-image {
+  display: block;
+  max-width: 100%;
+  width: 250px;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.message {
+  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+}
+
 .message-text {
   margin: 0;
   word-wrap: break-word;
+}
+.active-group {
+  background-color: #3b82f6;
+  color: white;
 }
