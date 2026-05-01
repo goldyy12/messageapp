@@ -154,21 +154,20 @@ export default function Conversations() {
                   senderType: typeof msg.senderId,
                   meType: typeof user?.id,
                 });
+                const isMyMessage = user && msg.senderId === user.id;
 
                 return (
                   <div
                     key={msg.id}
                     className={`message-wrapper ${
-                      msg.senderId?.toString() === user?.id?.toString()
+                      isMyMessage
                         ? "my-message-wrapper"
                         : "other-message-wrapper"
                     }`}
                   >
                     <div
                       className={`message ${
-                        msg.senderId?.toString() === user?.id?.toString()
-                          ? "my-message"
-                          : "other-message"
+                        isMyMessage ? "my-message" : "other-message"
                       }`}
                     >
                       {msg.fileUrl && (
