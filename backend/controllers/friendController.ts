@@ -34,11 +34,11 @@ export const getFriends = async (req: Request, res: Response) => {
       new Map(friendList.map((f) => [f.id, f])).values(),
     );
 
-    res.json(uniqueFriends);
-
     await redisClient.set(cacheKey, JSON.stringify(uniqueFriends), {
       EX: 3600,
     });
+
+    res.json(uniqueFriends);
     console.log("Friends retrieved from database and cached");
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Internal error";
