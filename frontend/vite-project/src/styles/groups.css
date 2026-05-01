@@ -322,3 +322,10 @@
   margin: 0;
   word-wrap: break-word;
 }
+.active-group {
+  background-color: #3b82f6;
+}
+.my-message {
+  background-color: #136fd8;
+  align-self: flex-end;
+}

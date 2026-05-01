@@ -1,27 +1,29 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../api.js";
-import "../styles/conversations.css";
-import { AuthContext } from "../context/authContext.js";
 import socket from "../socket.js";
-import { Link } from "react-router-dom";
-import { type Friend, type Message } from "../types/messages.js";
 import { useAuth } from "../context/useAuth.js";
+import { type Friend, type Message } from "../types/messages.js";
+import "../styles/chat.css";
 
 export default function Conversations() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendClicked, setFriendClicked] = useState<Friend | null>(null);
   const [sentMessage, setSentMessage] = useState("");
   const [allMessages, setAllMessages] = useState<Message[]>([]);
-  const [file, setFile] = useState<null | File>(null);
+  const [file, setFile] = useState<File | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const friendRef = useRef<Friend | null>(null);
 
   const { user } = useAuth();
 
+  // keep latest friend in ref (fix stale socket bug)
+  useEffect(() => {
+    friendRef.current = friendClicked;
+  }, [friendClicked]);
+
+  // join socket room
   useEffect(() => {
     if (!user?.id) return;
     socket.emit("joinUser", user.id);
@@ -30,17 +32,17 @@ export default function Conversations() {
       socket.off("privateMessage");
     };
   }, [user]);
+
+  // socket listener (fixed)
   useEffect(() => {
     const handler = (message: Message) => {
-      setAllMessages((prev) => {
-        if (!friendClicked) return prev;
+      const friend = friendRef.current;
+      if (!friend) return;
 
-        const valid =
-          message.senderId === friendClicked.id ||
-          message.receiverId === friendClicked.id;
+      const valid =
+        message.senderId === friend.id || message.receiverId === friend.id;
 
-        return valid ? [...prev, message] : prev;
-      });
+      setAllMessages((prev) => (valid ? [...prev, message] : prev));
     };
 
     socket.on("privateMessage", handler);
@@ -48,16 +50,14 @@ export default function Conversations() {
     return () => {
       socket.off("privateMessage", handler);
     };
-  }, []); // ✅ run once
-  const handlekeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  };
-  const isImage = (url: string) => {
-    return /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
-  };
+  }, []);
 
+  // scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [allMessages]);
+
+  // load friends
   useEffect(() => {
     const getFriends = async () => {
       try {
@@ -70,6 +70,7 @@ export default function Conversations() {
     getFriends();
   }, []);
 
+  // click friend
   const handleClick = async (id: number) => {
     try {
       const res = await api.get(`/friends/${id}`);
@@ -80,6 +81,7 @@ export default function Conversations() {
     }
   };
 
+  // get messages
   const getMessages = async (id: string) => {
     try {
       const res = await api.get(`/messages/${id}`);
@@ -95,6 +97,7 @@ export default function Conversations() {
     }
   };
 
+  // send message
   const sendMessage = async () => {
     if ((!sentMessage && !file) || !friendClicked) return;
 
@@ -115,13 +118,17 @@ export default function Conversations() {
       console.error("Failed to send message", error);
     }
   };
-  useEffect(() => {
-    scrollToBottom();
-  }, [allMessages]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") sendMessage();
+  };
+
+  const isImage = (url: string) => /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
 
   return (
-    <div className="conversations-container">
-      <div className="friends-list">
+    <div className="chat-container">
+      {/* Sidebar */}
+      <div className="chat-sidebar">
         <h2>My friends</h2>
         {friends.map((friend) => (
           <div
@@ -134,12 +141,16 @@ export default function Conversations() {
         ))}
       </div>
 
+      {/* Chat Area */}
       <div className="chat-area">
         {friendClicked ? (
           <>
-            <h2 className="chat">Chat with ddd {friendClicked.username}</h2>
-            <div className="messages-container">
+            <h2 className="chat">Chat with {friendClicked.username}</h2>
+
+            <div className="chat-messages">
               {allMessages.map((msg) => {
+                const isMyMessage = String(msg.senderId) === String(user?.id);
+
                 const messageTime = new Date(msg.createdAt).toLocaleString([], {
                   year: "numeric",
                   month: "numeric",
@@ -147,27 +158,17 @@ export default function Conversations() {
                   hour: "2-digit",
                   minute: "2-digit",
                 });
-                console.log("Comparison:", {
-                  sender: msg.senderId,
-                  me: user?.id,
-                  match: msg.senderId === user?.id,
-                  senderType: typeof msg.senderId,
-                  meType: typeof user?.id,
-                });
-                const isMyMessage = user && msg.senderId === user.id;
 
                 return (
                   <div
                     key={msg.id}
-                    className={`message-wrapper ${
-                      isMyMessage
-                        ? "my-message-wrapper"
-                        : "other-message-wrapper"
+                    className={`chat-message-wrapper ${
+                      isMyMessage ? "mine" : ""
                     }`}
                   >
                     <div
-                      className={`message ${
-                        isMyMessage ? "my-message" : "other-message"
+                      className={`chat-message ${
+                        isMyMessage ? "mine" : "other"
                       }`}
                     >
                       {msg.fileUrl && (
@@ -184,16 +185,16 @@ export default function Conversations() {
                               className="document-link"
                               onClick={() => window.open(msg.fileUrl, "_blank")}
                             >
-                              <span className="file-icon">📄</span>
-                              <p>View PDF Document</p>
+                              <span>📄</span>
+                              <p>View Document</p>
                             </div>
                           )}
                         </div>
                       )}
 
-                      {/* Render the text if it exists */}
                       {msg.text && <p className="message-text">{msg.text}</p>}
                     </div>
+
                     <span className="message-time">{messageTime}</span>
                   </div>
                 );
@@ -201,54 +202,39 @@ export default function Conversations() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="input-container">
+            {/* Input */}
+            <div className="chat-input-container">
               <label htmlFor="file-upload" className="file-upload-label">
                 📎
               </label>
+
               <input
                 id="file-upload"
                 type="file"
                 ref={fileInputRef}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setFile(e.target.files?.[0] ?? null)
-                }
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 style={{ display: "none" }}
               />
+
               <input
-                className="message-input"
+                className="chat-input"
                 value={sentMessage}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setSentMessage(e.target.value)
-                }
+                onChange={(e) => setSentMessage(e.target.value)}
                 placeholder={
                   file ? `Attached: ${file.name}` : "Type a message..."
                 }
-                onKeyDown={handlekeyDown}
+                onKeyDown={handleKeyDown}
               />
-              <button className="send-button" onClick={sendMessage}>
+
+              <button className="chat-send" onClick={sendMessage}>
                 Send
               </button>
             </div>
           </>
         ) : (
           <div className="empty-state">
-            <div className="icon-circle">
-              <svg
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-            </div>
             <h2>Select a Friend</h2>
-            <p>Select a friend to join the conversation.</p>
+            <p>Select a friend to start chatting.</p>
           </div>
         )}
       </div>
