@@ -12,7 +12,11 @@ const server = http.createServer(app);
 
 const io = new Server<clientToServer, serverToClient, SocketData>(server, {
   cors: {
-    origin: ["https://messageapp-ccvm.vercel.app", "http://localhost:5173"],
+    origin: [
+      "https://messageapp-ccvm.vercel.app",
+      "http://localhost:5173",
+      "https://messageapp-umber.vercel.app",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
