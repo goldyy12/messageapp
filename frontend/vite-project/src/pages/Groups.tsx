@@ -39,6 +39,10 @@ export default function Groups() {
       setIsLoading(false);
     }
   };
+  const isImage = (url: string) => {
+    return /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
