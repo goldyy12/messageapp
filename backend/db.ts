@@ -9,6 +9,18 @@ const adapter = new PrismaPg({
 });
 
 const prisma = new PrismaClient({ adapter });
-// console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
+import bcrypt from "bcryptjs";
+
+const quickTest = async () => {
+  const pass = "diar123";
+  const hash = await bcrypt.hash(pass, 10);
+
+  console.log("Newly Generated Hash:", hash);
+  const result = await bcrypt.compare(pass, hash);
+
+  console.log("Comparison Result:", result ? "✅ MATCH" : "❌ FAIL");
+};
+
+quickTest(); // Example usage
 export default prisma;

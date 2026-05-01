@@ -109,7 +109,9 @@ export const addFriend = async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
+    const msg =
+      error instanceof Error ? error.message : "Internal server error";
+    return res.status(500).json({ error: msg });
   }
 };
 export const getFriendsOnline = async (req: Request, res: Response) => {
