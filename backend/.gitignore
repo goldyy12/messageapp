@@ -3,3 +3,16 @@ node_modules
 .env
 
 /generated/prisma
+
+
+
+# TypeScript output
+dist/
+build/
+
+
+
+# Optional: Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
