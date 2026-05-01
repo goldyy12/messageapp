@@ -301,14 +301,14 @@
 }
 .chat-image {
   display: block;
-  max-width: 100%; /* Responds to the bubble size */
-  width: 250px; /* Good default width */
-  height: auto; /* Maintains aspect ratio */
+  max-width: 100%;
+  width: 250px;
+  height: auto;
   border-radius: 8px;
   margin-bottom: 5px;
   cursor: pointer;
   object-fit: cover;
-  flex-shrink: 0; /* Prevents flexbox from squishing it */
+  flex-shrink: 0;
 }
 
 /* Ensure the bubble can fit the image */
@@ -325,9 +325,17 @@
 .active-group {
   background-color: #3b82f6;
 }
+/* This ensures the bubble wraps the image and keeps the color */
 .my-message {
-  background-color: #136fd8;
-  align-self: flex-end;
+  background-color: #136fd8 !important;
+  color: white;
+}
+
+/* Ensure the attachment doesn't have its own weird background */
+.chat-image,
+.chat-image-attachment {
+  background-color: transparent;
+  display: block;
 }
 .input-container:has(input[type="file"]:valid) .file-upload-label {
   color: #007bff;
