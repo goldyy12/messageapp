@@ -21,7 +21,7 @@ const io = new Server<clientToServer, serverToClient, SocketData>(server, {
     credentials: true,
   },
 });
-
+connectRedis();
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
@@ -44,6 +44,7 @@ io.on("connection", (socket) => {
 });
 
 import { type Request, type Response, type NextFunction } from "express";
+import { connectRedis } from "./lib/redis.js";
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Global error handler:", err);
