@@ -50,24 +50,20 @@ export default function Friends() {
     try {
       await api.post("/friends", { friendId: id });
 
-      const friendsRes = await api.get("/friends");
-      const availableRes = await api.get("/friends/available");
+      // 🔥 force small delay so backend + redis syncs
+      await new Promise((r) => setTimeout(r, 200));
+
+      const [friendsRes, availableRes] = await Promise.all([
+        api.get("/friends"),
+        api.get("/friends/available"),
+      ]);
 
       setFriends(friendsRes.data);
       setAvailable(availableRes.data);
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError<{ error: string }>;
-        console.error("Add friend failed:", axiosError.response?.data.error);
-      } else {
-        console.error(
-          "Add friend failed:",
-          error instanceof Error ? error.message : "Unknown error",
-        );
-      }
+      console.error(error);
     }
   };
-
   return (
     <div className="friends-container">
       <div className="friends-column">
