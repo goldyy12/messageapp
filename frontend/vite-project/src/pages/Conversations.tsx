@@ -23,8 +23,8 @@ export default function Conversations() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user?.userId) return;
-    socket.emit("joinUser", user.userId);
+    if (!user?.id) return;
+    socket.emit("joinUser", user.id);
 
     return () => {
       socket.off("privateMessage");
@@ -149,24 +149,24 @@ export default function Conversations() {
                 });
                 console.log("Comparison:", {
                   sender: msg.senderId,
-                  me: user?.userId,
-                  match: msg.senderId === user?.userId,
+                  me: user?.id,
+                  match: msg.senderId === user?.id,
                   senderType: typeof msg.senderId,
-                  meType: typeof user?.userId,
+                  meType: typeof user?.id,
                 });
 
                 return (
                   <div
                     key={msg.id}
                     className={`message-wrapper ${
-                      msg.senderId?.toString() === user?.userId?.toString()
+                      msg.senderId?.toString() === user?.id?.toString()
                         ? "my-message-wrapper"
                         : "other-message-wrapper"
                     }`}
                   >
                     <div
                       className={`message ${
-                        msg.senderId?.toString() === user?.userId?.toString()
+                        msg.senderId?.toString() === user?.id?.toString()
                           ? "my-message"
                           : "other-message"
                       }`}

@@ -271,7 +271,7 @@ export default function Groups() {
                   hour: "2-digit",
                   minute: "2-digit",
                 });
-                const isMyMessage = msg.senderId === user?.userId;
+                const isMyMessage = msg.senderId === user?.id;
 
                 return (
                   <div

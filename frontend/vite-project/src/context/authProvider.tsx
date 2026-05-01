@@ -26,7 +26,7 @@ export default function AuthProvider({
     localStorage.setItem("token", token);
     const decoded: DecodedToken = jwtDecode(token);
     setUser({
-      id: decoded.userId,
+      id: decoded.id,
       username: decoded.username,
       email: decoded.email,
     });
