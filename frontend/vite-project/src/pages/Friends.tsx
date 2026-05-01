@@ -15,6 +15,7 @@ export default function Friends() {
       try {
         const res = await api.get("/friends");
         setFriends(res.data);
+        console.log("FRIENDS:", res.data);
       } catch (error) {
         console.error("Failed to load friends", error);
       }
@@ -24,6 +25,7 @@ export default function Friends() {
       try {
         const res = await api.get("/friends/available");
         setAvailable(res.data);
+        console.log("AVAILABLE FRIENDS:", res.data);
       } catch (error) {
         console.log(error);
       }
@@ -33,6 +35,7 @@ export default function Friends() {
       try {
         const res = await api.get("/friends/online");
         setOnline(res.data);
+        console.log("ONLINE FRIENDS:", res.data);
       } catch (error) {
         console.log(error);
       }

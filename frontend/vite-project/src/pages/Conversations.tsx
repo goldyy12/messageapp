@@ -137,7 +137,7 @@ export default function Conversations() {
       <div className="chat-area">
         {friendClicked ? (
           <>
-            <h2 className="chat">Chat with ddd {friendClicked.username}</h2>
+            <h2 className="chat">Chat with {friendClicked.username}</h2>
             <div className="messages-container">
               {allMessages.map((msg) => {
                 const messageTime = new Date(msg.createdAt).toLocaleString([], {
