@@ -291,12 +291,24 @@ export default function Groups() {
                       {msg.text}
                     </p>
                     {msg.fileUrl && (
-                      <img
-                        src={msg.fileUrl}
-                        alt="attachment"
-                        className="chat-image"
-                        onClick={() => window.open(msg.fileUrl, "_blank")}
-                      />
+                      <div className="file-attachment">
+                        {isImage(msg.fileUrl) ? (
+                          <img
+                            src={msg.fileUrl}
+                            alt="attachment"
+                            className="chat-image"
+                            onClick={() => window.open(msg.fileUrl, "_blank")}
+                          />
+                        ) : (
+                          <div
+                            className="document-link"
+                            onClick={() => window.open(msg.fileUrl, "_blank")}
+                          >
+                            <span className="file-icon">📄</span>
+                            <p>View PDF Document</p>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     <span className="message-time">{time}</span>
