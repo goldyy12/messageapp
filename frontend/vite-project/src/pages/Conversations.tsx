@@ -137,7 +137,7 @@ export default function Conversations() {
       <div className="chat-area">
         {friendClicked ? (
           <>
-            <h2 className="chat">Chat with {friendClicked.username}</h2>
+            <h2 className="chat">Chat with ddd {friendClicked.username}</h2>
             <div className="messages-container">
               {allMessages.map((msg) => {
                 const messageTime = new Date(msg.createdAt).toLocaleString([], {
@@ -147,19 +147,26 @@ export default function Conversations() {
                   hour: "2-digit",
                   minute: "2-digit",
                 });
+                console.log("Comparison:", {
+                  sender: msg.senderId,
+                  me: user?.userId,
+                  match: msg.senderId === user?.userId,
+                  senderType: typeof msg.senderId,
+                  meType: typeof user?.userId,
+                });
 
                 return (
                   <div
                     key={msg.id}
                     className={`message-wrapper ${
-                      msg.senderId === user?.userId
+                      msg.senderId?.toString() === user?.userId?.toString()
                         ? "my-message-wrapper"
                         : "other-message-wrapper"
                     }`}
                   >
                     <div
                       className={`message ${
-                        msg.senderId === user?.userId
+                        msg.senderId?.toString() === user?.userId?.toString()
                           ? "my-message"
                           : "other-message"
                       }`}
