@@ -329,3 +329,6 @@
   background-color: #136fd8;
   align-self: flex-end;
 }
+.input-container:has(input[type="file"]:valid) .file-upload-label {
+  color: #007bff;
+}

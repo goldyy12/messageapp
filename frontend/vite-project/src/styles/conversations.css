@@ -197,3 +197,6 @@ h2 {
   background-color: #3b82f6;
   color: white;
 }
+.input-container:has(input[type="file"]:valid) .file-upload-label {
+  color: #007bff;
+}
