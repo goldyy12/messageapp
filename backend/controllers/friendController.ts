@@ -35,14 +35,14 @@ export const getFriends = async (req: Request, res: Response) => {
     const uniqueFriends = Array.from(
       new Map(friendList.map((f) => [f.id, f])).values(),
     );
+    await redisClient.set(cacheKey, JSON.stringify(uniqueFriends), {
+      EX: 3600,
+    });
 
     // send response first
     res.json(uniqueFriends);
 
     // then cache
-    await redisClient.set(cacheKey, JSON.stringify(uniqueFriends), {
-      EX: 3600,
-    });
 
     console.log("Friends retrieved from DB and cached");
   } catch (error: unknown) {
@@ -57,17 +57,28 @@ export const getAvailableFriends = async (req: Request, res: Response) => {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
+  const uID = Number(userId);
+
+  // Debugging: Check if the ID is valid right away
+  if (isNaN(uID)) {
+    console.error("ID Conversion failed. Original userId:", userId);
+    return res.status(400).json({ error: "Invalid user ID format" });
+  }
+
   try {
+    // 1. Get IDs of people you are already friends with
     const existingFriends = await prisma.friend.findMany({
-      where: { userId: Number(userId) },
+      where: { userId: uID },
       select: { friendId: true },
     });
 
+    // 2. Create a list of IDs to exclude (yourself + existing friends)
     const excludedIds: number[] = [
-      Number(userId),
-      ...existingFriends.map((f) => Number(f.friendId)),
-    ].filter(Boolean) as number[];
+      uID,
+      ...existingFriends.map((f) => f.friendId),
+    ];
 
+    // 3. Find users NOT in that list
     const availableUsers = await prisma.user.findMany({
       where: {
         id: { notIn: excludedIds },
@@ -78,14 +89,11 @@ export const getAvailableFriends = async (req: Request, res: Response) => {
         profilePic: true,
       },
     });
-    const userId = getUserId(req);
-    console.log("Original userId:", userId, "Type:", typeof userId);
 
-    const uID = Number(userId);
-    console.log("Converted uID:", uID); // If this says NaN, this is your problem.
-
+    // 4. Send the successful response
     res.json(availableUsers);
   } catch (error: unknown) {
+    console.error("getAvailableFriends error:", error);
     const msg = error instanceof Error ? error.message : "Internal error";
     res.status(500).json({ error: msg });
   }
