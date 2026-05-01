@@ -1,11 +1,20 @@
 import prisma from "../db.js";
 import { getUserId } from "../utils/getUserId.js";
 import { type Request, type Response } from "express";
+import { type User } from "@prisma/client";
+import redisClient, { connectRedis } from "../lib/redis.js";
 
 export const getFriends = async (req: Request, res: Response) => {
   const userId = getUserId(req);
 
   try {
+    const cacheKey = `friends:${userId}`;
+    const cachedFriends = await redisClient.get(cacheKey);
+    if (cachedFriends) {
+      console.log("Friends retrieved from cache");
+      return res.json(JSON.parse(cachedFriends));
+    }
+
     const friends = await prisma.friend.findMany({
       where: { userId: Number(userId) },
       include: {
@@ -26,6 +35,11 @@ export const getFriends = async (req: Request, res: Response) => {
     );
 
     res.json(uniqueFriends);
+
+    await redisClient.set(cacheKey, JSON.stringify(uniqueFriends), {
+      EX: 3600,
+    });
+    console.log("Friends retrieved from database and cached");
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Internal error";
     res.status(500).json({ error: msg });
@@ -96,13 +110,15 @@ export const addFriend = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Already friends" });
     }
 
-    await prisma.friend.createMany({
-      data: [
-        { userId: uID, friendId: fID },
-        { userId: fID, friendId: uID },
-      ],
-      skipDuplicates: true,
-    });
+    await prisma.$transaction([
+      prisma.friend.create({ data: { userId: uID, friendId: fID } }),
+      prisma.friend.create({ data: { userId: fID, friendId: uID } }),
+    ]);
+
+    await Promise.all([
+      redisClient.del(`friends:${uID}`),
+      redisClient.del(`friends:${fID}`),
+    ]);
 
     return res.status(201).json({
       message: "Friend added successfully",

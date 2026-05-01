@@ -9,11 +9,14 @@ import groupRoutes from "./routes/group.routes.js";
 import accountRoutes from "./routes/account.routes.js";
 import messageRouter from "./routes/message.routes.js";
 import { type Request, type Response } from "express";
+import { connectRedis } from "./lib/redis.js";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+connectRedis();
 
 const allowedOrigins: string[] = [
   "http://localhost:5173",

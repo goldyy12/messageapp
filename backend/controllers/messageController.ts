@@ -2,6 +2,8 @@ import prisma from "../db.js";
 import { getUserId } from "../utils/getUserId.js";
 import { io, onlineUsers } from "../server.js";
 import { type Request, type Response } from "express";
+import { type Message } from "@prisma/client";
+import redisClient, { connectRedis } from "../lib/redis.js";
 
 export const sendMessage = async (req: Request, res: Response) => {
   const senderId = getUserId(req);
@@ -27,6 +29,11 @@ export const sendMessage = async (req: Request, res: Response) => {
         fileUrl,
       },
     });
+    const sId = Number(senderId);
+    const rId = Number(receiverId);
+
+    const cacheKey = `chat:${Math.min(sId, rId)}:${Math.max(sId, rId)}`;
+    await redisClient.del(cacheKey); // Invalidate cache for this conversation
 
     const receiverSocketId = onlineUsers.get(receiverIdNum);
     if (receiverSocketId)
@@ -56,8 +63,16 @@ export const getMessages = async (req: Request, res: Response) => {
     if (!fId || fId <= 0) {
       return res.status(400).json({ error: "Invalid friendId" });
     }
+    const cacheKey = `chat:${Math.min(uId, fId)}:${Math.max(uId, fId)}`;
 
-    const messages = await prisma.message.findMany({
+    // Try to get messages from Redis cache
+    const cachedMessages = await redisClient.get(cacheKey);
+    if (cachedMessages) {
+      console.log("Messages retrieved from cache");
+      return res.json(JSON.parse(cachedMessages));
+    }
+
+    const messages: Message[] = await prisma.message.findMany({
       where: {
         OR: [
           { senderId: uId, recipientId: fId },
@@ -66,6 +81,10 @@ export const getMessages = async (req: Request, res: Response) => {
       },
       orderBy: { createdAt: "desc" },
     });
+    await redisClient.set(cacheKey, JSON.stringify(messages), {
+      EX: 3600, // Cache expires in 60 minutes
+    });
+    console.log("Messages retrieved from database and cached");
 
     return res.json(messages);
   } catch (error: unknown) {
