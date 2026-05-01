@@ -78,6 +78,11 @@ export const getAvailableFriends = async (req: Request, res: Response) => {
         profilePic: true,
       },
     });
+    const userId = getUserId(req);
+    console.log("Original userId:", userId, "Type:", typeof userId);
+
+    const uID = Number(userId);
+    console.log("Converted uID:", uID); // If this says NaN, this is your problem.
 
     res.json(availableUsers);
   } catch (error: unknown) {
