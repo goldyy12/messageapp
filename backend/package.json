@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsnd --respawn src/index.js",
     "postinstall": "prisma generate"
   },
   "keywords": [],
