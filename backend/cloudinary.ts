@@ -7,7 +7,8 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "chat_uploads",
     allowed_formats: ["jpg", "png", "jpeg", "gif", "pdf"],
-  },
+    resource_type: "auto",
+  } as any,
 });
 
 // Use 'export' instead of 'module.exports'

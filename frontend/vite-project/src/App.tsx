@@ -1,25 +1,20 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./components/Layout";
-import ProtectedRoute from "./components/protectedRoutes";
+import Layout from "./components/Layout.js";
+import ProtectedRoute from "./components/protectedRoutes.js";
 
-import Login from "./pages/Login";
-import Groups from "./pages/Groups";
-import Conversations from "./pages/Conversations";
-import Friends from "./pages/Friends";
-import Account from "./pages/Account";
-import Signup from "./pages/Signup";
+import Login from "./pages/Login.js";
+import Groups from "./pages/Groups.js";
+import Conversations from "./pages/Conversations.js";
+import Friends from "./pages/Friends.js";
+import Account from "./pages/Account.js";
+import Signup from "./pages/Signup.js";
 
 function App() {
   return (
     <Routes>
-      
       <Route path="/" element={<Navigate to="/login" replace />} />
-
-      
       <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-
-      \
+      <Route path="/signup" element={<Signup />} />\
       <Route element={<Layout />}>
         <Route
           path="/groups"
@@ -54,8 +49,6 @@ function App() {
           }
         />
       </Route>
-
-     
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

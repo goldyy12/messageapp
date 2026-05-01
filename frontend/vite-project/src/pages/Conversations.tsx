@@ -1,23 +1,26 @@
 import { useState, useEffect, useContext, useRef } from "react";
-import api from "../api";
+import api from "../api.js";
 import "../styles/conversations.css";
-import { AuthContext } from "../context/authContext.jsx";
-import socket from "../socket";
+import { AuthContext } from "../context/authContext.js";
+import socket from "../socket.js";
+import { Link } from "react-router-dom";
+import { type Friend, type Message } from "../types/messages.js";
+import { useAuth } from "../context/useAuth.js";
 
 export default function Conversations() {
-  const [friends, setFriends] = useState([]);
-  const [friendClicked, setFriendClicked] = useState(null);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendClicked, setFriendClicked] = useState<Friend | null>(null);
   const [sentMessage, setSentMessage] = useState("");
-  const [allMessages, setAllMessages] = useState([]);
-  const [file, setFile] = useState(null);
-  const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
+  const [allMessages, setAllMessages] = useState<Message[]>([]);
+  const [file, setFile] = useState<null | File>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!user?.userId) return;
@@ -27,24 +30,32 @@ export default function Conversations() {
       socket.off("privateMessage");
     };
   }, [user]);
-
   useEffect(() => {
-    socket.on("privateMessage", (message) => {
-      if (
-        friendClicked &&
-        (message.senderId === friendClicked.id ||
-          message.receiverId === friendClicked.id)
-      ) {
-        setAllMessages((prev) => [...prev, message]);
-      }
-    });
+    const handler = (message: Message) => {
+      setAllMessages((prev) => {
+        if (!friendClicked) return prev;
 
-    return () => socket.off("privateMessage");
-  }, [friendClicked]);
-  const handlekeyDown = (e) => {
+        const valid =
+          message.senderId === friendClicked.id ||
+          message.receiverId === friendClicked.id;
+
+        return valid ? [...prev, message] : prev;
+      });
+    };
+
+    socket.on("privateMessage", handler);
+
+    return () => {
+      socket.off("privateMessage", handler);
+    };
+  }, []); // ✅ run once
+  const handlekeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       sendMessage();
     }
+  };
+  const isImage = (url: string) => {
+    return /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
   };
 
   useEffect(() => {
@@ -59,22 +70,25 @@ export default function Conversations() {
     getFriends();
   }, []);
 
-  const handleClick = async (id) => {
+  const handleClick = async (id: number) => {
     try {
       const res = await api.get(`/friends/${id}`);
       setFriendClicked(res.data);
-      getMessages(id);
+      getMessages(String(id));
     } catch (err) {
       console.error("Failed to fetch friend", err);
     }
   };
 
-  const getMessages = async (id) => {
+  const getMessages = async (id: string) => {
     try {
       const res = await api.get(`/messages/${id}`);
-      // Reverse messages so oldest appear first
+
       setAllMessages(
-        res.data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
+        res.data.sort(
+          (a: Message, b: Message) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        ),
       );
     } catch (error) {
       console.error("Failed to load messages", error);
@@ -86,8 +100,8 @@ export default function Conversations() {
 
     try {
       const formData = new FormData();
-      formData.append("text", sentMessage || ""); // always include text
-      formData.append("receiverId", friendClicked.id);
+      formData.append("text", sentMessage || "");
+      formData.append("receiverId", String(friendClicked.id));
       if (file) formData.append("file", file);
 
       const res = await api.post("/messages", formData, {
@@ -138,26 +152,37 @@ export default function Conversations() {
                   <div
                     key={msg.id}
                     className={`message-wrapper ${
-                      msg.senderId === user.userId
+                      msg.senderId === user?.userId
                         ? "my-message-wrapper"
                         : "other-message-wrapper"
                     }`}
                   >
                     <div
                       className={`message ${
-                        msg.senderId === user.userId
+                        msg.senderId === user?.userId
                           ? "my-message"
                           : "other-message"
                       }`}
                     >
-                      {/* Render the image if fileUrl exists */}
                       {msg.fileUrl && (
-                        <img
-                          src={msg.fileUrl}
-                          alt="attachment"
-                          className="chat-image"
-                          onClick={() => window.open(msg.fileUrl, "_blank")}
-                        />
+                        <div className="file-attachment">
+                          {isImage(msg.fileUrl) ? (
+                            <img
+                              src={msg.fileUrl}
+                              alt="attachment"
+                              className="chat-image"
+                              onClick={() => window.open(msg.fileUrl, "_blank")}
+                            />
+                          ) : (
+                            <div
+                              className="document-link"
+                              onClick={() => window.open(msg.fileUrl, "_blank")}
+                            >
+                              <span className="file-icon">📄</span>
+                              <p>View PDF Document</p>
+                            </div>
+                          )}
+                        </div>
                       )}
 
                       {/* Render the text if it exists */}
@@ -178,13 +203,17 @@ export default function Conversations() {
                 id="file-upload"
                 type="file"
                 ref={fileInputRef}
-                onChange={(e) => setFile(e.target.files[0])}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFile(e.target.files?.[0] ?? null)
+                }
                 style={{ display: "none" }}
               />
               <input
                 className="message-input"
                 value={sentMessage}
-                onChange={(e) => setSentMessage(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSentMessage(e.target.value)
+                }
                 placeholder={
                   file ? `Attached: ${file.name}` : "Type a message..."
                 }

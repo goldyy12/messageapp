@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import api from "../api";
+import api from "../api.js";
 import "../styles/friends.css"; // create this CSS file
+import type { AxiosError } from "axios";
+import axios from "axios";
+import { type Friend } from "../types/messages.js";
 
 export default function Friends() {
-  const [friends, setFriends] = useState([]);
-  const [available, setAvailable] = useState([]);
-  const [online, setOnline] = useState([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [available, setAvailable] = useState<Friend[]>([]);
+  const [online, setOnline] = useState<Friend[]>([]);
 
   useEffect(() => {
     const getFriends = async () => {
@@ -40,7 +43,7 @@ export default function Friends() {
     onlineFriends();
   }, []);
 
-  const addFriend = async (id) => {
+  const addFriend = async (id: number) => {
     try {
       await api.post("/friends", { friendId: id });
 
@@ -49,8 +52,16 @@ export default function Friends() {
 
       setFriends(friendsRes.data);
       setAvailable(availableRes.data);
-    } catch (error) {
-      console.error("Add friend failed:", error.response?.data);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError<{ error: string }>;
+        console.error("Add friend failed:", axiosError.response?.data.error);
+      } else {
+        console.error(
+          "Add friend failed:",
+          error instanceof Error ? error.message : "Unknown error",
+        );
+      }
     }
   };
 

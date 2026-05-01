@@ -1,0 +1,23 @@
+config:
+  target: "https://messageapp-dj2x.onrender.com"
+  engines:
+    socketio:
+      transports: ["polling", "websocket"]
+  phases:
+    - duration: 60
+      arrivalRate: 2
+
+scenarios:
+  - name: "Live User Session"
+    engine: socketio
+    flow:
+      - emit:
+          channel: "joinUser"
+          data: "123"
+      - think: 1
+      - emit:
+          channel: "sendMessage"
+          data:
+            content: "Hello, this is a test message!"
+            senderId: "123"
+            receiverId: "456"

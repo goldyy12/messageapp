@@ -1,12 +1,13 @@
 import prisma from "../db.js";
 import { getUserId } from "../utils/getUserId.js";
+import { type Request, type Response } from "express";
 
-export const getFriends = async (req, res) => {
+export const getFriends = async (req: Request, res: Response) => {
   const userId = getUserId(req);
 
   try {
     const friends = await prisma.friend.findMany({
-      where: { userId },
+      where: { userId: Number(userId) },
       include: {
         friend: {
           select: {
@@ -25,12 +26,13 @@ export const getFriends = async (req, res) => {
     );
 
     res.json(uniqueFriends);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Internal error";
+    res.status(500).json({ error: msg });
   }
 };
 
-export const getAvailableFriends = async (req, res) => {
+export const getAvailableFriends = async (req: Request, res: Response) => {
   const userId = getUserId(req);
 
   if (!userId) {
@@ -39,14 +41,14 @@ export const getAvailableFriends = async (req, res) => {
 
   try {
     const existingFriends = await prisma.friend.findMany({
-      where: { userId },
+      where: { userId: Number(userId) },
       select: { friendId: true },
     });
 
-    const excludedIds = [
-      userId,
-      ...existingFriends.map((f) => f.friendId),
-    ].filter(Boolean);
+    const excludedIds: number[] = [
+      Number(userId),
+      ...existingFriends.map((f) => Number(f.friendId)),
+    ].filter(Boolean) as number[];
 
     const availableUsers = await prisma.user.findMany({
       where: {
@@ -60,12 +62,13 @@ export const getAvailableFriends = async (req, res) => {
     });
 
     res.json(availableUsers);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Internal error";
+    res.status(500).json({ error: msg });
   }
 };
 
-export const addFriend = async (req, res) => {
+export const addFriend = async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const { friendId } = req.body;
 
@@ -78,11 +81,13 @@ export const addFriend = async (req, res) => {
   }
 
   try {
+    const uID = Number(userId);
+    const fID = Number(friendId);
     const existing = await prisma.friend.findFirst({
       where: {
         OR: [
-          { userId, friendId },
-          { userId: friendId, friendId: userId },
+          { userId: uID, friendId: fID },
+          { userId: fID, friendId: uID },
         ],
       },
     });
@@ -93,8 +98,8 @@ export const addFriend = async (req, res) => {
 
     await prisma.friend.createMany({
       data: [
-        { userId, friendId },
-        { userId: friendId, friendId: userId },
+        { userId: uID, friendId: fID },
+        { userId: fID, friendId: uID },
       ],
       skipDuplicates: true,
     });
@@ -102,12 +107,12 @@ export const addFriend = async (req, res) => {
     return res.status(201).json({
       message: "Friend added successfully",
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-export const getFriendsOnline = async (req, res) => {
+export const getFriendsOnline = async (req: Request, res: Response) => {
   const userId = getUserId(req);
 
   if (!userId) {
@@ -116,7 +121,7 @@ export const getFriendsOnline = async (req, res) => {
 
   try {
     const userFriends = await prisma.friend.findMany({
-      where: { userId },
+      where: { userId: Number(userId) },
       select: { friendId: true },
     });
 
@@ -130,11 +135,7 @@ export const getFriendsOnline = async (req, res) => {
 
     const onlineFriends = await prisma.user.findMany({
       where: {
-        AND: [
-          { id: { in: friendIds } },
-          { lastActive: { gte: oneHourAgo } },
-          { lastActive: { not: null } },
-        ],
+        AND: [{ id: { in: friendIds } }, { lastActive: { gte: oneHourAgo } }],
       },
       select: {
         id: true,
@@ -144,12 +145,14 @@ export const getFriendsOnline = async (req, res) => {
     });
 
     return res.json(onlineFriends);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("getFriendsOnline error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    const msg =
+      error instanceof Error ? error.message : "Internal Server Error";
+    return res.status(500).json({ error: msg });
   }
 };
-export const getFriendByID = async (req, res) => {
+export const getFriendByID = async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const { id } = req.params;
 
@@ -167,8 +170,8 @@ export const getFriendByID = async (req, res) => {
     const friend = await prisma.friend.findUnique({
       where: {
         userId_friendId: {
-          userId,
-          friendId,
+          userId: Number(userId),
+          friendId: Number(friendId),
         },
       },
       include: {
@@ -186,24 +189,25 @@ export const getFriendByID = async (req, res) => {
     }
 
     res.json(friend.friend);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("getFriendByID error:", error);
-    res.status(500).json({ error: error.message });
+    const msg = error instanceof Error ? error.message : "Internal error";
+    res.status(500).json({ error: msg });
   }
 };
 
-export const searchFriends = async (req, res) => {
+export const searchFriends = async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const { q } = req.query;
 
-  if (!q || q.trim() === "") {
+  if (typeof q !== "string" || q.trim() === "") {
     return res.json([]);
   }
 
   try {
     const friends = await prisma.friend.findMany({
       where: {
-        userId,
+        userId: Number(userId),
         friend: {
           username: {
             contains: q,
@@ -225,8 +229,9 @@ export const searchFriends = async (req, res) => {
     const users = friends.map((f) => f.friend);
 
     res.json(users);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    console.error("searchFriends error:", error);
+    const msg = error instanceof Error ? error.message : "Internal error";
+    res.status(500).json({ error: msg });
   }
 };

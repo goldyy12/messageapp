@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import prisma from "../db.js";
 import dotenv from "dotenv";
+import { type Request, type Response } from "express";
 
 dotenv.config();
 
@@ -11,17 +12,17 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
-export const register = async (req, res) => {
+export const register = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ error: "All fields are required" });
+      return res.status(401).json({ error: "All fields are required" });
     }
 
     if (password.length < 8) {
       return res
-        .status(400)
+        .status(401)
         .json({ error: "Password must be at least 8 characters" });
     }
 
@@ -30,10 +31,10 @@ export const register = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: "Username already exists" });
+      return res.status(401).json({ error: "Username already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.create({
       data: {
@@ -41,12 +42,11 @@ export const register = async (req, res) => {
         password: hashedPassword,
       },
     });
-   
 
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: "24h" }
+      { expiresIn: "24h" },
     );
 
     res.status(201).json({
@@ -62,7 +62,7 @@ export const register = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
 
@@ -73,14 +73,13 @@ export const login = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { username },
     });
-     await prisma.user.update({
-      where: { id: user.id },
-      data: { lastActive: new Date() },
-    });
-
     if (!user) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActive: new Date() },
+    });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -90,7 +89,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: "24h" }
+      { expiresIn: "24h" },
     );
 
     res.json({ token });

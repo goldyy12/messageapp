@@ -1,44 +1,46 @@
 import { useState, useEffect, useContext, useRef } from "react";
-import api from "../api";
+import api from "../api.js";
 import "../styles/groups.css";
-import socket from "../socket";
-import { AuthContext } from "../context/authContext.jsx";
+import socket from "../socket.js";
+import { AuthContext } from "../context/authContext.js";
+import { type Friend, type Group, type Message } from "../types/messages.js";
+import { useAuth } from "../context/useAuth.js";
+import axios, { AxiosError } from "axios";
 
 export default function Groups() {
-  const [groups, setGroups] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState(null);
-  const [groupMessages, setGroupMessages] = useState([]);
-  const [messageText, setMessageText] = useState("");
-  const [friends, setFriends] = useState([]);
-  const [friendsMenu, setFriendsMenu] = useState(false);
-  const [newGroupName, setNewGroupName] = useState("");
-  const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const [file, setFile] = useState(null);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [groupMessages, setGroupMessages] = useState<Message[]>([]);
+  const [messageText, setMessageText] = useState<string>("");
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendsMenu, setFriendsMenu] = useState<boolean>(false);
+  const [newGroupName, setNewGroupName] = useState<string>("");
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
 
   const getGroups = async () => {
     try {
       const res = await api.get("/groups");
       setGroups(res.data);
-    } catch (err) {
-      console.error("Failed to load groups", err);
-      setError("Failed to load groups");
-      console.error(err.data?.error || err.message);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ error: string }>;
+        setError(axiosError.response?.data.error || "Failed to load groups");
+      } else {
+        console.error("Failed to load groups", err);
+        setError("Failed to load groups");
+      }
     } finally {
       setIsLoading(false);
     }
   };
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-  const onkeyDown = (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
   };
 
   const addGroup = async () => {
@@ -48,7 +50,15 @@ export default function Groups() {
       setNewGroupName("");
       getGroups();
     } catch (err) {
-      console.error(err);
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ error: string }>;
+        console.error("Add group failed:", axiosError.response?.data.error);
+      } else {
+        console.error(
+          "Add group failed:",
+          err instanceof Error ? err.message : "Unknown error",
+        );
+      }
     }
   };
 
@@ -60,8 +70,15 @@ export default function Groups() {
       });
       setSelectedGroup(null);
       getGroups();
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error("Leave group failed:", err.response?.data.error);
+      } else {
+        console.error(
+          "Leave group failed:",
+          err instanceof Error ? err.message : "Unknown error",
+        );
+      }
     }
   };
 
@@ -73,18 +90,26 @@ export default function Groups() {
         `/groups/${selectedGroup.id}/available-friends`,
       );
       setFriends(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ error: string }>;
+        console.error("Get friends failed:", axiosError.response?.data.error);
+      } else {
+        console.error(
+          "Get friends failed:",
+          err instanceof Error ? err.message : "Unknown error",
+        );
+      }
     }
   };
 
-  const sendMessage = async (e) => {
+  const sendMessage = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if ((!messageText.trim() && !file) || !selectedGroup) return;
 
     try {
       const formData = new FormData();
-      formData.append("groupId", selectedGroup.id);
+      formData.append("groupId", String(selectedGroup.id));
       if (messageText) formData.append("text", messageText);
       if (file) formData.append("file", file);
 
@@ -100,20 +125,30 @@ export default function Groups() {
       console.error(err);
     }
   };
-  const handleGroupClick = async (id) => {
+  const handleGroupClick = async (id: number) => {
     try {
       const res = await api.get(`/groups/${id}`);
       setSelectedGroup(res.data);
       setGroupMessages(res.data.messages);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(
+          "Failed to load group details:",
+          err.response?.data.error,
+        );
+      } else {
+        console.error(
+          "Failed to load group details:",
+          err instanceof Error ? err.message : "Unknown error",
+        );
+      }
     }
   };
 
-  const addMember = async (memberId) => {
+  const addMember = async (memberId: number) => {
     try {
       await api.post("/groups/addmember", {
-        groupId: selectedGroup.id,
+        groupId: selectedGroup?.id,
         memberID: memberId,
       });
 
@@ -122,8 +157,15 @@ export default function Groups() {
         if (updated.length === 0) setFriendsMenu(false);
         return updated;
       });
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error("Add member failed:", err.response?.data.error);
+      } else {
+        console.error(
+          "Add member failed:",
+          err instanceof Error ? err.message : "Unknown error",
+        );
+      }
     }
   };
 
@@ -139,7 +181,7 @@ export default function Groups() {
 
     socket.emit("joinGroup", selectedGroup.id);
 
-    const handleNewMessage = (message) => {
+    const handleNewMessage = (message: any) => {
       // Only add if message belongs to the currently active group
       if (message.groupId === selectedGroup.id) {
         setGroupMessages((prev) => [...prev, message]);
@@ -229,7 +271,7 @@ export default function Groups() {
                   hour: "2-digit",
                   minute: "2-digit",
                 });
-                const isMyMessage = msg.senderId === user.userId;
+                const isMyMessage = msg.senderId === user?.userId;
 
                 return (
                   <div
@@ -245,7 +287,8 @@ export default function Groups() {
                         isMyMessage ? "my-message" : "other-message"
                       }`}
                     >
-                      <strong>{msg.sender.username}:</strong> {msg.text}
+                      <strong>{msg.sender.username || "Unknown User"}:</strong>{" "}
+                      {msg.text}
                     </p>
                     {msg.fileUrl && (
                       <img
@@ -272,17 +315,20 @@ export default function Groups() {
                 id="file-upload"
                 type="file"
                 ref={fileInputRef}
-                onChange={(e) => setFile(e.target.files[0])}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFile(e.target.files?.[0] ?? null)
+                }
                 style={{ display: "none" }}
               />
               <input
                 className="message-input"
                 value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setMessageText(e.target.value)
+                }
                 placeholder={
                   file ? `Attached: ${file.name}` : "Type a message..."
                 }
-                onKeyDown={onkeyDown}
               />
               <button className="send-button" type="submit">
                 Send

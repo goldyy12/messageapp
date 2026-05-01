@@ -1,8 +1,9 @@
 import prisma from "../db.js";
 import { getUserId } from "../utils/getUserId.js";
 import { io, onlineUsers } from "../server.js";
+import { type Request, type Response } from "express";
 
-export const sendMessage = async (req, res) => {
+export const sendMessage = async (req: Request, res: Response) => {
   const senderId = getUserId(req);
   const { receiverId, text } = req.body || {}; // safe fallback
   const fileUrl = req.file ? req.file.path : null;
@@ -20,7 +21,7 @@ export const sendMessage = async (req, res) => {
   try {
     const message = await prisma.message.create({
       data: {
-        senderId,
+        senderId: Number(senderId),
         recipientId: receiverIdNum,
         text: text || "",
         fileUrl,
@@ -35,12 +36,14 @@ export const sendMessage = async (req, res) => {
     if (senderSocketId) io.to(senderSocketId).emit("privateMessage", message);
 
     res.status(201).json(message);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("SEND MESSAGE ERROR:", error);
-    res.status(500).json({ error: error.message });
+    const msg =
+      error instanceof Error ? error.message : "Internal Server Error";
+    res.status(500).json({ error: msg });
   }
 };
-export const getMessages = async (req, res) => {
+export const getMessages = async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const friendId = Number(req.params.friendId);
 
@@ -48,19 +51,26 @@ export const getMessages = async (req, res) => {
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
+    const fId = Number(friendId);
+    const uId = Number(userId);
+    if (!fId || fId <= 0) {
+      return res.status(400).json({ error: "Invalid friendId" });
+    }
 
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          { senderId: userId, recipientId: friendId },
-          { senderId: friendId, recipientId: userId },
+          { senderId: uId, recipientId: fId },
+          { senderId: fId, recipientId: uId },
         ],
       },
       orderBy: { createdAt: "desc" },
     });
 
     return res.json(messages);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    const msg =
+      error instanceof Error ? error.message : "Internal Server Error";
+    return res.status(500).json({ error: msg });
   }
 };

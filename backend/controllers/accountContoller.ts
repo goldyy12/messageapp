@@ -1,8 +1,10 @@
 import prisma from "../db.js";
 import { getUserId } from "../utils/getUserId.js";
 import bcrypt from "bcryptjs";
+import { type Request, type Response } from "express";
+import { type User } from "@prisma/client";
 
-export const changePassword = async (req, res) => {
+export const changePassword = async (req: Request, res: Response) => {
   const { oldpassword, newpassword, confirmnewpassword } = req.body;
   const userId = getUserId(req);
 
@@ -15,8 +17,8 @@ export const changePassword = async (req, res) => {
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user: User | null = await prisma.user.findUnique({
+      where: { id: Number(userId) },
     });
 
     if (!user) {
@@ -28,16 +30,17 @@ export const changePassword = async (req, res) => {
       return res.status(401).json({ error: "Old password is incorrect" });
     }
 
-    const hashedPassword = await bcrypt.hash(newpassword, 10);
+    const hashedPassword = await bcrypt.hash(newpassword, 12);
 
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: Number(userId) },
       data: { password: hashedPassword },
     });
 
     return res.json({ message: "Password changed successfully" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Something went wrong" });
+  } catch (error: unknown) {
+    console.error("changePassword error:", error);
+    const msg = error instanceof Error ? error.message : "Internal error";
+    return res.status(500).json({ error: msg });
   }
 };

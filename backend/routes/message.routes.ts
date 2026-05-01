@@ -8,7 +8,6 @@ const router = express.Router();
 router.use(authenticateToken);
 const upload = multer({ storage });
 
-// Handle both multipart/form-data (with file) and application/json (text only)
 router.post(
   "/",
   (req, res, next) => {

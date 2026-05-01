@@ -1,20 +1,22 @@
 import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/authContext.jsx";
-import api from "../api";
-import styles from "../styles/login.module.css"; 
+import { AuthContext } from "../context/authContext.js";
+import api from "../api.js";
+import styles from "../styles/login.module.css";
+import axios, { AxiosError } from "axios";
+import { useAuth } from "../context/useAuth.js";
 
 export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { setUser } = useContext(AuthContext);
+  const { setUser } = useAuth();
 
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -28,8 +30,13 @@ export default function Register() {
       localStorage.setItem("token", res.data.token);
       setUser(res.data.user);
       navigate("/");
-    } catch (error) {
-      setError(error.response?.data?.error || "Registration failed");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ error: string }>;
+        setError(axiosError.response?.data.error || "Registration failed");
+      } else {
+        setError("Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -39,7 +46,9 @@ export default function Register() {
     <div className={styles.loginContainer}>
       <div className={styles.card}>
         <h1 className={styles.title}>Create Account</h1>
-        <p style={{ color: 'white', marginBottom: '1.5rem' }}>Join our community today</p>
+        <p style={{ color: "white", marginBottom: "1.5rem" }}>
+          Join our community today
+        </p>
 
         <form onSubmit={handleRegister}>
           <div className={styles.inputGroup}>
@@ -62,8 +71,8 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={styles.togglePassword}
               onClick={() => setShowPassword(!showPassword)}
             >
@@ -71,11 +80,7 @@ export default function Register() {
             </button>
           </div>
 
-          <button
-            type="submit"
-            className={styles.button}
-            disabled={loading}
-          >
+          <button type="submit" className={styles.button} disabled={loading}>
             {loading ? "Creating account..." : "Register"}
           </button>
         </form>
@@ -83,7 +88,10 @@ export default function Register() {
         {error && <p className={styles.error}>{error}</p>}
 
         <p className={styles.linkText}>
-          Already have an account? <Link to="/login" className={styles.link}>Login here</Link>
+          Already have an account?{" "}
+          <Link to="/login" className={styles.link}>
+            Login here
+          </Link>
         </p>
       </div>
     </div>

@@ -1,20 +1,22 @@
 import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/authContext.jsx";
-import api from "../api";
+import { AuthContext } from "../context/authContext.js";
+import api from "../api.js";
 import styles from "../styles/login.module.css";
+import axios, { AxiosError } from "axios";
+import { useAuth } from "../context/useAuth.js";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // New feature
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false); // New feature
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -23,7 +25,12 @@ export default function Login() {
       login(res.data.token);
       navigate("/groups");
     } catch (err) {
-      setError(err.response?.data?.error || "Invalid credentials");
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ error: string }>;
+        setError(axiosError.response?.data.error || "Invalid credentials");
+      } else {
+        setError("Invalid credentials");
+      }
     } finally {
       setLoading(false);
     }
@@ -53,8 +60,8 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={styles.togglePassword}
               onClick={() => setShowPassword(!showPassword)}
             >
@@ -65,11 +72,14 @@ export default function Login() {
             {loading ? "Signing in..." : "Login"}
           </button>
         </form>
-        
+
         {error && <p className={styles.error}>{error}</p>}
-        
+
         <p className={styles.linkText}>
-          Don't have an account? <Link to="/signup" className={styles.link}>Sign up</Link>
+          Don't have an account?{" "}
+          <Link to="/signup" className={styles.link}>
+            Sign up
+          </Link>
         </p>
       </div>
     </div>
