@@ -6,9 +6,14 @@ import redisClient, { connectRedis } from "../lib/redis.js";
 
 export const getFriends = async (req: Request, res: Response) => {
   const userId = getUserId(req);
+  const uId = Number(userId);
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
   try {
-    const cacheKey = `friends:${userId}`;
+    const cacheKey = `friends:${uId}`;
     const cachedFriends = await redisClient.get(cacheKey);
     if (cachedFriends) {
       console.log("Friends retrieved from cache");
@@ -16,7 +21,7 @@ export const getFriends = async (req: Request, res: Response) => {
     }
 
     const friends = await prisma.friend.findMany({
-      where: { userId: Number(userId) },
+      where: { userId: uId },
       include: {
         friend: {
           select: {
@@ -34,11 +39,12 @@ export const getFriends = async (req: Request, res: Response) => {
       new Map(friendList.map((f) => [f.id, f])).values(),
     );
 
+    res.json(uniqueFriends);
+
     await redisClient.set(cacheKey, JSON.stringify(uniqueFriends), {
       EX: 3600,
     });
 
-    res.json(uniqueFriends);
     console.log("Friends retrieved from database and cached");
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Internal error";
