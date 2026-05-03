@@ -65,7 +65,6 @@ export const getMessages = async (req: Request, res: Response) => {
     }
     const cacheKey = `chat:${Math.min(uId, fId)}:${Math.max(uId, fId)}`;
 
-    // Try to get messages from Redis cache
     const cachedMessages = await redisClient.get(cacheKey);
     if (cachedMessages) {
       console.log("Messages retrieved from cache");

@@ -22,9 +22,7 @@ export default function Groups() {
   const [file, setFile] = useState<File | null>(null);
 
   const { user } = useAuth();
-  useEffect(() => {
-    console.log("Current User Object:", user);
-  }, [user]);
+
   const getGroups = async () => {
     try {
       const res = await api.get("/groups");
@@ -188,7 +186,6 @@ export default function Groups() {
     socket.emit("joinGroup", selectedGroup.id);
 
     const handleNewMessage = (message: any) => {
-      // Only add if message belongs to the currently active group
       if (message.groupId === selectedGroup.id) {
         setGroupMessages((prev) => [...prev, message]);
       }
@@ -198,7 +195,7 @@ export default function Groups() {
 
     return () => {
       socket.off("newMessage", handleNewMessage);
-      socket.emit("leaveGroup", selectedGroup.id); // Add 'leave' event on backend
+      socket.emit("leaveGroup", selectedGroup.id);
     };
   }, [selectedGroup]);
   if (isLoading) return <p>Loading groups...</p>;
@@ -284,16 +281,13 @@ export default function Groups() {
                     key={msg.id}
                     className={`message-wrapper ${isMyMessage ? "my-message-wrapper" : "other-message-wrapper"}`}
                   >
-                    {/* Combined Message Bubble */}
                     <div
                       className={`message ${isMyMessage ? "my-message" : "other-message"}`}
                     >
                       <strong>{msg.sender.username || "Unknown User"}:</strong>
 
-                      {/* Render text if it exists */}
                       {msg.text && <p className="message-text">{msg.text}</p>}
 
-                      {/* Render file inside the same bubble */}
                       {msg.fileUrl && (
                         <div className="file-attachment">
                           {isImage(msg.fileUrl) ? (

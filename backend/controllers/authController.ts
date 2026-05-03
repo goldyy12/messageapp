@@ -15,7 +15,6 @@ if (!JWT_SECRET) {
 export const register = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
-    console.log("🔥 LOGIN ROUTE HIT - NEW CODE ACTIVE");
 
     if (!username || !password) {
       return res.status(401).json({ error: "All fields are required" });
@@ -91,7 +90,6 @@ export const login = async (req: Request, res: Response) => {
       {
         userId: user.id,
         username: user.username,
-        TEST_FLAG: "This is a test flag for debugging purposes",
       },
       JWT_SECRET,
       { expiresIn: "24h" },

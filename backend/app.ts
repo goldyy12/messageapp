@@ -9,7 +9,7 @@ import groupRoutes from "./routes/group.routes";
 import accountRoutes from "./routes/account.routes";
 import messageRouter from "./routes/message.routes";
 import { type Request, type Response } from "express";
-import { connectRedis } from "./lib/redis";
+import redisClient from "./lib/redis";
 
 dotenv.config();
 
@@ -46,6 +46,22 @@ app.get("/health", async (req: Request, res: Response) => {
       .status(500)
       .json({ status: "error", db: "failed", details: (e as Error).message });
   }
+});
+app.get("/redis-test", async (req, res) => {
+  const start = Date.now();
+
+  await redisClient.set("test:key", "hello", {
+    EX: 10,
+  });
+
+  const value = await redisClient.get("test:key");
+
+  const end = Date.now();
+
+  res.json({
+    value,
+    timeMs: end - start,
+  });
 });
 
 export default app;
