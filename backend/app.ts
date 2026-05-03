@@ -63,5 +63,18 @@ app.get("/redis-test", async (req, res) => {
     timeMs: end - start,
   });
 });
+app.get("/redis-test1", async (req, res) => {
+  const start = Date.now();
+
+  const value = "hello"; // no Redis at all
+
+  const end = Date.now();
+
+  res.json({
+    value,
+    timeMs: end - start,
+    mode: "no-redis",
+  });
+});
 
 export default app;

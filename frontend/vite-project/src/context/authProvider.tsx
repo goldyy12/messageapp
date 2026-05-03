@@ -8,7 +8,7 @@ function getUserFromToken() {
   const token = localStorage.getItem("token");
   if (!token) return null;
   const decoded: DecodedToken = jwtDecode(token);
-  console.log("Decoded token:", decoded);
+
   return {
     userId: decoded.userId,
     username: decoded.username,
