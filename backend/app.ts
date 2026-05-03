@@ -21,6 +21,7 @@ const allowedOrigins: string[] = [
   "https://messageapp-ccvm.vercel.app",
   "https://messageapp-umber.vercel.app",
   "https://messageapp-av9z.vercel.app",
+  "https://messageapp-i1a9.vercel.app",
 ];
 
 app.use(
