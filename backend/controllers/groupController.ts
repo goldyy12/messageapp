@@ -1,29 +1,58 @@
-import prisma from "../db.js";
-import { getUserId } from "../utils/getUserId.js";
-import { io } from "../server.js";
+import prisma from "../db";
+import { getUserId } from "../utils/getUserId";
+import { io } from "../server";
 import { type Request, type Response } from "express";
+import redisClient, { connectRedis } from "../lib/redis";
 
 export const getGroups = async (req: Request, res: Response) => {
   const userId = getUserId(req);
+  const uID = Number(userId);
+
+  console.log("Fetching groups for userId:", userId);
+
+  if (!userId || isNaN(uID)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const cacheKey = `groups:${uID}`;
 
   try {
+    const cached = await redisClient.get(cacheKey);
+
+    if (cached) {
+      console.log("⚡ Groups from Redis cache");
+      return res.json(JSON.parse(cached));
+    }
+
     const groups = await prisma.group.findMany({
-      where: { members: { some: { userId: Number(userId) } } },
+      where: { members: { some: { userId: uID } } },
       orderBy: { createdAt: "desc" },
       include: { members: true, messages: true },
     });
 
-    res.json(groups);
+    await redisClient.set(cacheKey, JSON.stringify(groups), {
+      EX: 60 * 5,
+    });
+
+    console.log("💾 Groups cached");
+
+    return res.json(groups);
   } catch (error: unknown) {
     const msg =
       error instanceof Error ? error.message : "Internal Server Error";
-    res.status(500).json({ error: msg });
+    return res.status(500).json({ error: msg });
   }
 };
 
 export const addGroup = async (req: Request, res: Response) => {
   const userId = getUserId(req);
+  const uID = Number(userId);
   const { name } = req.body;
+
+  if (!userId || isNaN(uID)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   if (!name) {
     return res.status(400).json({ error: "Group name is required" });
   }
@@ -32,26 +61,39 @@ export const addGroup = async (req: Request, res: Response) => {
     const group = await prisma.group.create({
       data: {
         name,
-        members: { create: { userId: Number(userId) } },
+        members: { create: { userId: uID } },
       },
       include: { members: true },
     });
 
-    res.status(201).json(group);
+    // 🔥 CACHE INVALIDATION (IMPORTANT)
+    await redisClient.del(`groups:${uID}`);
+
+    return res.status(201).json(group);
   } catch (error: unknown) {
     const msg =
       error instanceof Error ? error.message : "Internal Server Error";
-    res.status(500).json({ error: msg });
+    return res.status(500).json({ error: msg });
   }
 };
 
 export const getGroupById = async (req: Request, res: Response) => {
   const userId = getUserId(req);
+  const uID = Number(userId);
   const { id } = req.params;
 
   try {
+    if (!userId || isNaN(uID)) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const cacheKey = `group:${id}:user:${uID}`;
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.json(JSON.parse(cached));
+    }
+
     const group = await prisma.group.findFirst({
-      where: { id: Number(id), members: { some: { userId: Number(userId) } } },
+      where: { id: Number(id), members: { some: { userId: uID } } },
       include: {
         members: {
           include: {
@@ -70,6 +112,10 @@ export const getGroupById = async (req: Request, res: Response) => {
         .status(404)
         .json({ error: "Group not found or access denied" });
 
+    await redisClient.set(cacheKey, JSON.stringify(group), {
+      EX: 60 * 5,
+    });
+
     res.json(group);
   } catch (error: unknown) {
     const msg =
@@ -79,6 +125,8 @@ export const getGroupById = async (req: Request, res: Response) => {
 };
 
 export const newGroupMsg = async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const uID = Number(userId);
   try {
     if (!req.body) {
       return res
@@ -119,6 +167,9 @@ export const newGroupMsg = async (req: Request, res: Response) => {
     });
 
     io.to(`group_${groupId}`).emit("newMessage", message);
+
+    await redisClient.del(`group:${uID}:${groupId}`);
+    await redisClient.del(`groups:${uID}`);
     res.status(201).json(message);
   } catch (error: unknown) {
     console.error("Critical Error in newGroupMsg:", error);
@@ -130,6 +181,11 @@ export const newGroupMsg = async (req: Request, res: Response) => {
 
 export const addToGroup = async (req: Request, res: Response) => {
   const userId = getUserId(req);
+  const uID = Number(userId);
+
+  if (!userId || isNaN(uID)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
   const { groupId, memberID } = req.body;
 
@@ -151,6 +207,8 @@ export const addToGroup = async (req: Request, res: Response) => {
         userId: Number(memberID),
       },
     });
+    await redisClient.del(`group:${uID}:${groupId}`);
+    await redisClient.del(`groups:${uID}`);
 
     res.status(201).json(member);
   } catch (error) {
@@ -197,6 +255,8 @@ export const leaveGroup = async (req: Request, res: Response) => {
     await prisma.groupMember.deleteMany({
       where: { groupId: Number(groupId), userId: Number(userId) },
     });
+    await redisClient.del(`group:${userId}:${groupId}`);
+    await redisClient.del(`groups:${userId}`);
     res.json({ message: "Left group successfully" });
   } catch (error: unknown) {
     const msg =

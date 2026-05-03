@@ -1,14 +1,27 @@
-import prisma from "../db.js";
-import { getUserId } from "../utils/getUserId.js";
+import prisma from "../db";
+import { getUserId } from "../utils/getUserId";
 import { type Request, type Response } from "express";
 import { type User } from "@prisma/client";
-import redisClient, { connectRedis } from "../lib/redis.js";
+import redisClient, { connectRedis } from "../lib/redis";
 
 export const getFriends = async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const uID = Number(userId);
 
+  if (!userId || isNaN(uID)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const cacheKey = `friends:${uID}`;
+
   try {
+    const cached = await redisClient.get(cacheKey);
+
+    if (cached) {
+      console.log("⚡ Friends from Redis cache");
+      return res.json(JSON.parse(cached));
+    }
+
     const friends = await prisma.friend.findMany({
       where: { userId: uID },
       include: {
@@ -28,15 +41,16 @@ export const getFriends = async (req: Request, res: Response) => {
       new Map(friendList.map((f) => [f.id, f])).values(),
     );
 
-    // send response first
-    res.json(uniqueFriends);
+    // 3. STORE IN REDIS
+    await redisClient.set(cacheKey, JSON.stringify(uniqueFriends));
 
-    // then cache
+    console.log("💾 Friends retrieved from DB and cached");
 
-    console.log("Friends retrieved from DB and cached");
+    // 4. RETURN RESPONSE
+    return res.json(uniqueFriends);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Internal error";
-    res.status(500).json({ error: msg });
+    return res.status(500).json({ error: msg });
   }
 };
 export const getAvailableFriends = async (req: Request, res: Response) => {
@@ -55,19 +69,22 @@ export const getAvailableFriends = async (req: Request, res: Response) => {
   }
 
   try {
-    // 1. Get IDs of people you are already friends with
+    const cacheKey = `availableFriends:${uID}`;
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      console.log("⚡ Available friends from Redis cache");
+      return res.json(JSON.parse(cached));
+    }
     const existingFriends = await prisma.friend.findMany({
       where: { userId: uID },
       select: { friendId: true },
     });
 
-    // 2. Create a list of IDs to exclude (yourself + existing friends)
     const excludedIds: number[] = [
       uID,
       ...existingFriends.map((f) => f.friendId),
     ];
 
-    // 3. Find users NOT in that list
     const availableUsers = await prisma.user.findMany({
       where: {
         id: { notIn: excludedIds },
@@ -78,8 +95,10 @@ export const getAvailableFriends = async (req: Request, res: Response) => {
         profilePic: true,
       },
     });
+    await redisClient.set(cacheKey, JSON.stringify(availableUsers), {
+      EX: 60 * 5, // Cache for 5 minutes
+    });
 
-    // 4. Send the successful response
     res.json(availableUsers);
   } catch (error: unknown) {
     console.error("getAvailableFriends error:", error);
@@ -124,6 +143,8 @@ export const addFriend = async (req: Request, res: Response) => {
     await Promise.all([
       redisClient.del(`friends:${uID}`),
       redisClient.del(`friends:${fID}`),
+      redisClient.del(`availableFriends:${uID}`),
+      redisClient.del(`availableFriends:${fID}`),
     ]);
 
     return res.status(201).json({

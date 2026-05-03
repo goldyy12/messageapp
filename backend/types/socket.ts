@@ -8,7 +8,7 @@ export interface serverToClient {
 }
 
 export interface SocketData {
-  userId: string;
+  UserId: string;
 }
 
 export interface Message {

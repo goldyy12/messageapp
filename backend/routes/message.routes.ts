@@ -1,8 +1,8 @@
 import express from "express";
-import { sendMessage, getMessages } from "../controllers/messageController.js";
-import { authenticateToken } from "../middleware/auth.js";
+import { sendMessage, getMessages } from "../controllers/messageController";
+import { authenticateToken } from "../middleware/auth";
 import multer from "multer";
-import { storage } from "../cloudinary.js";
+import { storage } from "../cloudinary";
 
 const router = express.Router();
 router.use(authenticateToken);

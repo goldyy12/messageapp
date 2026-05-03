@@ -5,9 +5,9 @@ import {
   addFriend,
   getFriendsOnline,
   searchFriends,
-  getFriendByID
-} from "../controllers/friendController.js";
-import { authenticateToken } from "../middleware/auth.js";
+  getFriendByID,
+} from "../controllers/friendController";
+import { authenticateToken } from "../middleware/auth";
 
 const router = express.Router();
 router.use(authenticateToken);
@@ -21,7 +21,6 @@ router.get("/online", getFriendsOnline);
 router.get("/search", searchFriends);
 
 router.post("/", addFriend);
-router.get("/:id",getFriendByID)
-
+router.get("/:id", getFriendByID);
 
 export default router;

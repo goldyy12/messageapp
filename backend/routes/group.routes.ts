@@ -7,12 +7,12 @@ import {
   addToGroup,
   getAvailableFriends,
   leaveGroup,
-} from "../controllers/groupController.js";
+} from "../controllers/groupController";
 
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken } from "../middleware/auth";
 
 import multer from "multer";
-import { storage } from "../cloudinary.js";
+import { storage } from "../cloudinary";
 
 const router = express.Router();
 

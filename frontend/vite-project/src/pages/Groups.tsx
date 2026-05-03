@@ -22,7 +22,9 @@ export default function Groups() {
   const [file, setFile] = useState<File | null>(null);
 
   const { user } = useAuth();
-
+  useEffect(() => {
+    console.log("Current User Object:", user);
+  }, [user]);
   const getGroups = async () => {
     try {
       const res = await api.get("/groups");
@@ -275,7 +277,7 @@ export default function Groups() {
                   hour: "2-digit",
                   minute: "2-digit",
                 });
-                const isMyMessage = msg.senderId === user?.id;
+                const isMyMessage = msg.senderId === user?.userId;
 
                 return (
                   <div

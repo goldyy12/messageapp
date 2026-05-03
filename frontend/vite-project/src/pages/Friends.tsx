@@ -15,7 +15,6 @@ export default function Friends() {
       try {
         const res = await api.get("/friends");
         setFriends(res.data);
-        console.log("FRIENDS:", res.data);
       } catch (error) {
         console.error("Failed to load friends", error);
       }
@@ -25,7 +24,6 @@ export default function Friends() {
       try {
         const res = await api.get("/friends/available");
         setAvailable(res.data);
-        console.log("AVAILABLE FRIENDS:", res.data);
       } catch (error) {
         console.log(error);
       }
@@ -35,7 +33,6 @@ export default function Friends() {
       try {
         const res = await api.get("/friends/online");
         setOnline(res.data);
-        console.log("ONLINE FRIENDS:", res.data);
       } catch (error) {
         console.log(error);
       }
@@ -48,19 +45,16 @@ export default function Friends() {
 
   const addFriend = async (id: number) => {
     try {
-      await api.post("/friends", { friendId: id });
+      const res = await api.post("/friends", { friendId: id });
 
-      // 🔥 force small delay so backend + redis syncs
-      await new Promise((r) => setTimeout(r, 200));
+      // optimistic update (IMPORTANT)
+      const newFriend = available.find((u) => u.id === id);
+      if (newFriend) {
+        setFriends((prev) => [...prev, newFriend]);
+      }
 
-      const [friendsRes, availableRes] = await Promise.all([
-        api.get("/friends"),
-        api.get("/friends/available"),
-      ]);
-
-      setFriends(friendsRes.data);
-      setAvailable(availableRes.data);
-    } catch (error: unknown) {
+      setAvailable((prev) => prev.filter((u) => u.id !== id));
+    } catch (error) {
       console.error(error);
     }
   };

@@ -1,9 +1,9 @@
-import prisma from "../db.js";
-import { getUserId } from "../utils/getUserId.js";
-import { io, onlineUsers } from "../server.js";
+import prisma from "../db";
+import { getUserId } from "../utils/getUserId";
+import { io, onlineUsers } from "../server";
 import { type Request, type Response } from "express";
 import { type Message } from "@prisma/client";
-import redisClient, { connectRedis } from "../lib/redis.js";
+import redisClient, { connectRedis } from "../lib/redis";
 
 export const sendMessage = async (req: Request, res: Response) => {
   const senderId = getUserId(req);

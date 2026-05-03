@@ -1,12 +1,12 @@
 import "dotenv/config";
 import http from "http";
 import { Server } from "socket.io";
-import app from "./app.js";
+import app from "./app";
 import {
   type clientToServer,
   type serverToClient,
   type SocketData,
-} from "./types/socket.js";
+} from "./types/socket";
 
 const server = http.createServer(app);
 
@@ -44,7 +44,7 @@ io.on("connection", (socket) => {
 });
 
 import { type Request, type Response, type NextFunction } from "express";
-import { connectRedis } from "./lib/redis.js";
+import { connectRedis } from "./lib/redis";
 connectRedis();
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

@@ -8,8 +8,9 @@ function getUserFromToken() {
   const token = localStorage.getItem("token");
   if (!token) return null;
   const decoded: DecodedToken = jwtDecode(token);
+  console.log("Decoded token:", decoded);
   return {
-    id: decoded.userId,
+    userId: decoded.userId,
     username: decoded.username,
     email: decoded.email,
   };
@@ -26,7 +27,7 @@ export default function AuthProvider({
     localStorage.setItem("token", token);
     const decoded: DecodedToken = jwtDecode(token);
     setUser({
-      id: decoded.id,
+      userId: decoded.userId,
       username: decoded.username,
       email: decoded.email,
     });

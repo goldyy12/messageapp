@@ -1,5 +1,5 @@
-import prisma from "../db.js";
-import { getUserId } from "../utils/getUserId.js";
+import prisma from "../db";
+import { getUserId } from "../utils/getUserId";
 import bcrypt from "bcryptjs";
 import { type Request, type Response } from "express";
 import { type User } from "@prisma/client";

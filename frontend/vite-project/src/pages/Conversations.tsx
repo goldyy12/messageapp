@@ -23,8 +23,8 @@ export default function Conversations() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user?.id) return;
-    socket.emit("joinUser", user.id);
+    if (!user?.userId) return;
+    socket.emit("joinUser", user.userId);
 
     return () => {
       socket.off("privateMessage");
@@ -48,7 +48,7 @@ export default function Conversations() {
     return () => {
       socket.off("privateMessage", handler);
     };
-  }, []); // ✅ run once
+  }, []);
   const handlekeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       sendMessage();
@@ -147,14 +147,8 @@ export default function Conversations() {
                   hour: "2-digit",
                   minute: "2-digit",
                 });
-                console.log("Comparison:", {
-                  sender: msg.senderId,
-                  me: user?.id,
-                  match: msg.senderId === user?.id,
-                  senderType: typeof msg.senderId,
-                  meType: typeof user?.id,
-                });
-                const isMyMessage = user && msg.senderId === user.id;
+
+                const isMyMessage = user && msg.senderId === user.userId;
 
                 return (
                   <div

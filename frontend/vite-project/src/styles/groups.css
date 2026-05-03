@@ -1,15 +1,14 @@
 .groups-container {
   display: flex;
   flex-direction: row;
-  max-width: 1300px;
+  max-width: 1400px;
 
-  width: 100%;
+  width: 95%;
   margin: 0 auto;
   height: 80vh;
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
-  margin-left: 100px;
 }
 
 .groups-left {
@@ -59,7 +58,6 @@
   background-color: #e0e0e0;
 }
 
-/* Right chat area */
 .groups-right {
   flex: 1;
   display: flex;

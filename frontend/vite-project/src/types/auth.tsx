@@ -1,10 +1,10 @@
 export interface User {
-  id: number;
+  userId: number;
   username: string;
   email: string;
 }
 export interface DecodedToken {
-  id: number;
+  userId: number;
   username: string;
   email: string;
   exp: number;

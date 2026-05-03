@@ -1,13 +1,11 @@
 import express from "express";
 
-
-import { changePassword } from "../controllers/accountContoller.js";
-import { authenticateToken } from "../middleware/auth.js";
-
+import { changePassword } from "../controllers/accountContoller";
+import { authenticateToken } from "../middleware/auth";
 
 const router = express.Router();
 router.use(authenticateToken);
 
-router.post("/", changePassword)
+router.post("/", changePassword);
 
 export default router;

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import prisma from "../db.js";
+import prisma from "../db";
 import dotenv from "dotenv";
 import { type Request, type Response } from "express";
 
@@ -15,6 +15,7 @@ if (!JWT_SECRET) {
 export const register = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
+    console.log("🔥 LOGIN ROUTE HIT - NEW CODE ACTIVE");
 
     if (!username || !password) {
       return res.status(401).json({ error: "All fields are required" });
@@ -52,7 +53,7 @@ export const register = async (req: Request, res: Response) => {
     res.status(201).json({
       token,
       user: {
-        id: user.id,
+        userId: user.id,
         username: user.username,
       },
     });
@@ -87,12 +88,22 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, username: user.username },
+      {
+        userId: user.id,
+        username: user.username,
+        TEST_FLAG: "This is a test flag for debugging purposes",
+      },
       JWT_SECRET,
       { expiresIn: "24h" },
     );
 
-    res.json({ token });
+    res.json({
+      token,
+      user: {
+        userId: user.id,
+        username: user.username,
+      },
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Could not login" });

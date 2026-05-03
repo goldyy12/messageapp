@@ -2,21 +2,19 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import prisma from "./db.js";
-import friendsRoutes from "./routes/friend.routes.js";
-import authRoutes from "./routes/auth.routes.js";
-import groupRoutes from "./routes/group.routes.js";
-import accountRoutes from "./routes/account.routes.js";
-import messageRouter from "./routes/message.routes.js";
+import prisma from "./db";
+import friendsRoutes from "./routes/friend.routes";
+import authRoutes from "./routes/auth.routes";
+import groupRoutes from "./routes/group.routes";
+import accountRoutes from "./routes/account.routes";
+import messageRouter from "./routes/message.routes";
 import { type Request, type Response } from "express";
-import { connectRedis } from "./lib/redis.js";
+import { connectRedis } from "./lib/redis";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
-
-connectRedis();
 
 const allowedOrigins: string[] = [
   "http://localhost:5173",
