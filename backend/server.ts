@@ -17,6 +17,7 @@ const io = new Server<clientToServer, serverToClient, SocketData>(server, {
       "http://localhost:5173",
       "https://messageapp-umber.vercel.app",
       "https://messageapp-av9z.vercel.app",
+      "https://messageapp-i1a9.vercel.app",
     ],
     methods: ["GET", "POST"],
     credentials: true,
