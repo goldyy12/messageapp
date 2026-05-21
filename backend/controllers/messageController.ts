@@ -2,17 +2,14 @@ import prisma from "../db";
 import { getUserId } from "../utils/getUserId";
 import { io, onlineUsers } from "../server";
 import { type Request, type Response } from "express";
-import { type Message } from "@prisma/client";
+import { type MessageDTO } from "../types/socket";
 import redisClient, { connectRedis } from "../lib/redis";
 
 export const sendMessage = async (req: Request, res: Response) => {
   const senderId = getUserId(req);
-  const { receiverId, text } = req.body || {}; // safe fallback
+  const { receiverId, text } = req.body || {};
   const fileUrl = req.file ? req.file.path : null;
 
-  console.log("CONTENT-TYPE:", req.headers["content-type"]);
-  console.log("REQ.BODY:", req.body);
-  console.log("REQ.FILE:", req.file);
   if (!senderId) return res.status(401).json({ error: "Unauthorized" });
 
   const receiverIdNum = Number(receiverId);
@@ -29,18 +26,30 @@ export const sendMessage = async (req: Request, res: Response) => {
         fileUrl,
       },
     });
+
     const sId = Number(senderId);
     const rId = Number(receiverId);
 
     const cacheKey = `chat:${Math.min(sId, rId)}:${Math.max(sId, rId)}`;
-    await redisClient.del(cacheKey); // Invalidate cache for this conversation
+    await redisClient.del(cacheKey);
 
-    const receiverSocketId = onlineUsers.get(receiverIdNum);
-    if (receiverSocketId)
+    // Send to receiver
+    const receiverSocketId = onlineUsers.get(rId);
+
+    if (receiverSocketId) {
+      console.log(` Emitting privateMessage to receiver ${receiverId}`);
       io.to(receiverSocketId).emit("privateMessage", message);
+    } else {
+      console.log(`⚠️ Receiver ${rId} is not online`);
+    }
 
-    const senderSocketId = onlineUsers.get(senderId);
-    if (senderSocketId) io.to(senderSocketId).emit("privateMessage", message);
+    const senderSocketId = onlineUsers.get(sId);
+
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("privateMessage", message);
+    } else {
+      console.log(` Sender ${sId} is not online`);
+    }
 
     res.status(201).json(message);
   } catch (error: unknown) {
@@ -67,11 +76,10 @@ export const getMessages = async (req: Request, res: Response) => {
 
     const cachedMessages = await redisClient.get(cacheKey);
     if (cachedMessages) {
-      console.log("Messages retrieved from cache");
       return res.json(JSON.parse(cachedMessages));
     }
 
-    const messages: Message[] = await prisma.message.findMany({
+    const messages: MessageDTO[] = await prisma.message.findMany({
       where: {
         OR: [
           { senderId: uId, recipientId: fId },
@@ -81,7 +89,7 @@ export const getMessages = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
     await redisClient.set(cacheKey, JSON.stringify(messages), {
-      EX: 3600, // Cache expires in 60 minutes
+      EX: 300, // Cache expires in 5 minutes
     });
     console.log("Messages retrieved from database and cached");
 

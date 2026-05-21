@@ -5,10 +5,9 @@ export interface Friend {
 export interface Message {
   id: number;
   senderId: number;
-  receiverId: number;
+  recipientId: number;
   sender: Friend;
   receiver: Friend;
-
   text?: string;
   fileUrl?: string;
   createdAt: string;

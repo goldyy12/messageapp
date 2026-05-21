@@ -1,3 +1,3 @@
 import { type Request } from "express";
 
-export const getUserId = (req: Request): string | undefined => req.user?.userId;
+export const getUserId = (req: Request): number | undefined => req.user?.userId;

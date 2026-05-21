@@ -29,19 +29,27 @@ const onlineUsers = new Map();
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("joinUser", (userId: string) => {
-    onlineUsers.set(userId, socket.id);
-    console.log(`User ${userId} connected with socket ${socket.id}`);
+  socket.on("joinUser", (userId: number) => {
+    const userIdNum = Number(userId);
+
+    if (Number.isNaN(userIdNum)) return;
+
+    onlineUsers.set(userIdNum, socket.id);
+
+    console.log(`User ${userIdNum} connected with socket ${socket.id}`);
+    console.log("📊 Online Users:", Array.from(onlineUsers.entries()));
   });
 
   socket.on("disconnect", () => {
     for (const [userId, socketId] of onlineUsers.entries()) {
       if (socketId === socket.id) {
+        console.log(`User ${userId} disconnected`);
         onlineUsers.delete(userId);
         break;
       }
     }
-    console.log("User disconnected:", socket.id);
+
+    console.log("📊 Online Users:", Array.from(onlineUsers.entries()));
   });
 });
 

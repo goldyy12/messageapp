@@ -4,8 +4,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
     env_file:
       - ./backend/.env
 
@@ -23,13 +25,11 @@ services:
     ports:
       - "6379:6379"
 
-frontend:
-  build: ./frontend
-  ports:
-    - "5173:5173"
-  depends_on:
-    - backend
-  stdin_open: true
-  tty: true
-  env_file:
-    - ./frontend/.env
+  frontend:
+    build: ./frontend/vite-project
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./frontend/vite-project/.env
+    depends_on:
+      - backend

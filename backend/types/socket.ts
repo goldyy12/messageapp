@@ -1,5 +1,5 @@
 export interface clientToServer {
-  joinUser: (userId: string) => void;
+  joinUser: (userId: number) => void;
 }
 
 export interface serverToClient {
@@ -24,6 +24,14 @@ export interface Message {
   };
 }
 export interface PrivateMessage {
+  id: number;
+  text: string | null;
+  senderId: number;
+  recipientId: number;
+  fileUrl: string | null;
+  createdAt: Date;
+}
+export interface MessageDTO {
   id: number;
   text: string | null;
   senderId: number;

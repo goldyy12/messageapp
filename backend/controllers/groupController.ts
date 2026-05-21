@@ -3,6 +3,7 @@ import { getUserId } from "../utils/getUserId";
 import { io } from "../server";
 import { type Request, type Response } from "express";
 import redisClient, { connectRedis } from "../lib/redis";
+import { group } from "console";
 
 export const getGroups = async (req: Request, res: Response) => {
   const userId = getUserId(req);
@@ -66,8 +67,8 @@ export const addGroup = async (req: Request, res: Response) => {
       include: { members: true },
     });
 
-    // 🔥 CACHE INVALIDATION (IMPORTANT)
     await redisClient.del(`groups:${uID}`);
+    await redisClient.del(`group:${group.id}`);
 
     return res.status(201).json(group);
   } catch (error: unknown) {
@@ -86,7 +87,7 @@ export const getGroupById = async (req: Request, res: Response) => {
     if (!userId || isNaN(uID)) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const cacheKey = `group:${id}:user:${uID}`;
+    const cacheKey = `group:${id}`;
     const cached = await redisClient.get(cacheKey);
     if (cached) {
       return res.json(JSON.parse(cached));
@@ -135,7 +136,7 @@ export const newGroupMsg = async (req: Request, res: Response) => {
     }
 
     const fileUrl = req.file ? req.file.path : null;
-    const userId = getUserId(req);
+
     const { groupId, text } = req.body;
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -168,7 +169,7 @@ export const newGroupMsg = async (req: Request, res: Response) => {
 
     io.to(`group_${groupId}`).emit("newMessage", message);
 
-    await redisClient.del(`group:${uID}:${groupId}`);
+    await redisClient.del(`group:${parsedGroupId}`);
     await redisClient.del(`groups:${uID}`);
     res.status(201).json(message);
   } catch (error: unknown) {
@@ -207,8 +208,8 @@ export const addToGroup = async (req: Request, res: Response) => {
         userId: Number(memberID),
       },
     });
-    await redisClient.del(`group:${uID}:${groupId}`);
-    await redisClient.del(`groups:${uID}`);
+    await redisClient.del(`group:${groupId}`);
+    await redisClient.del(`groups:${userId}`);
 
     res.status(201).json(member);
   } catch (error) {
@@ -255,8 +256,9 @@ export const leaveGroup = async (req: Request, res: Response) => {
     await prisma.groupMember.deleteMany({
       where: { groupId: Number(groupId), userId: Number(userId) },
     });
-    await redisClient.del(`group:${userId}:${groupId}`);
+    await redisClient.del(`group:${groupId}`);
     await redisClient.del(`groups:${userId}`);
+
     res.json({ message: "Left group successfully" });
   } catch (error: unknown) {
     const msg =

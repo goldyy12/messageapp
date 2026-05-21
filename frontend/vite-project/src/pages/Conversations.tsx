@@ -24,22 +24,34 @@ export default function Conversations() {
 
   useEffect(() => {
     if (!user?.userId) return;
+
     socket.emit("joinUser", user.userId);
 
+    socket.on("userJoined", (data) => {
+      console.log("User joined confirmation:", data);
+    });
+
     return () => {
-      socket.off("privateMessage");
+      socket.off("userJoined");
     };
   }, [user]);
+
   useEffect(() => {
     const handler = (message: Message) => {
       setAllMessages((prev) => {
-        if (!friendClicked) return prev;
+        if (!friendClicked) {
+          return prev;
+        }
 
         const valid =
           message.senderId === friendClicked.id ||
-          message.receiverId === friendClicked.id;
+          message.recipientId === friendClicked.id;
 
-        return valid ? [...prev, message] : prev;
+        if (!valid) return prev;
+
+        // ✅ Check if message already exists (prevent duplicates)
+
+        return [...prev, message];
       });
     };
 
@@ -48,7 +60,13 @@ export default function Conversations() {
     return () => {
       socket.off("privateMessage", handler);
     };
-  }, []);
+  }, [friendClicked]);
+
+  // ✅ Auto-scroll when messages update
+  useEffect(() => {
+    scrollToBottom();
+  }, [allMessages]);
+
   const handlekeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       sendMessage();
@@ -102,23 +120,19 @@ export default function Conversations() {
       const formData = new FormData();
       formData.append("text", sentMessage || "");
       formData.append("receiverId", String(friendClicked.id));
+
       if (file) formData.append("file", file);
 
-      const res = await api.post("/messages", formData, {
+      await api.post("/messages", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setAllMessages((prev) => [...prev, res.data]);
       setSentMessage("");
       setFile(null);
     } catch (error) {
-      console.error("Failed to send message", error);
+      console.error("❌ Failed to send message", error);
     }
   };
-  useEffect(() => {
-    scrollToBottom();
-  }, [allMessages]);
-
   return (
     <div className="conversations-container">
       <div className="friends-list">
