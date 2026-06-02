@@ -41,12 +41,12 @@ export const getFriends = async (req: Request, res: Response) => {
       new Map(friendList.map((f) => [f.id, f])).values(),
     );
 
-    // 3. STORE IN REDIS
+  
     await redisClient.set(cacheKey, JSON.stringify(uniqueFriends));
 
     console.log("💾 Friends retrieved from DB and cached");
 
-    // 4. RETURN RESPONSE
+   
     return res.json(uniqueFriends);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Internal error";
@@ -62,7 +62,7 @@ export const getAvailableFriends = async (req: Request, res: Response) => {
 
   const uID = Number(userId);
 
-  // Debugging: Check if the ID is valid right away
+  
   if (isNaN(uID)) {
     console.error("ID Conversion failed. Original userId:", userId);
     return res.status(400).json({ error: "Invalid user ID format" });
